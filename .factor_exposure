@@ -7,8 +7,8 @@ from sklearn import linear_model
 
 import rqdatac
 
-# rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
-rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
+rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
+#rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
 
 
 def recent_annual_report(date):
@@ -65,7 +65,7 @@ def sales_growth(date):
     growth_listed_date_threshold = (datetime.strptime(date, "%Y-%m-%d") - timedelta(days=1825)).strftime("%Y-%m-%d")
     growth_qualified_stocks = [i for i in annual_report.index.tolist() if rqdatac.instruments(i).listed_date < growth_listed_date_threshold]
 
-    factor = pd.DataFrame(index=growth_qualified_stocks)
+    factor = pd.DataFrame(index=growth_qualified_stocks,columns=['SGRO'])
 
     for stock in growth_qualified_stocks:
         query = rqdatac.query(rqdatac.financials.income_statement.operating_revenue).filter(
@@ -129,40 +129,57 @@ def sales_growth(date):
             [sales_per_share_recent, sales_per_share_last_year, sales_per_share_2_year_ago, sales_per_share_3_year_ago,
              sales_per_share_4_year_ago])
         regression.fit(sales_per_share.reshape(-1, 1), ([4, 3, 2, 1, 0]))
-        factor[stock] = float(regression.coef_)/sales_per_share.mean()
+        factor['SGRO'][stock] = float(regression.coef_)/sales_per_share.mean()
 
     return factor
 
 
 def earnings_growth(date):
-    recent_report,annual_report,annual_report_last_year,annual_report_2_year_ago,annual_report_3_year_ago,annual_report_4_year_ago = recent_annual_report(date)
+    recent_report, annual_report, annual_report_last_year, annual_report_2_year_ago, annual_report_3_year_ago, annual_report_4_year_ago = recent_annual_report(date)
     growth_listed_date_threshold = (datetime.strptime(date, "%Y-%m-%d") - timedelta(days=1825)).strftime("%Y-%m-%d")
-    growth_qualified_stocks = [i for i in annual_report.index.tolist() if rqdatac.instruments(i).listed_date < growth_listed_date_threshold]
+    growth_qualified_stocks = [i for i in annual_report.index.tolist() if
+                               rqdatac.instruments(i).listed_date < growth_listed_date_threshold]
 
-    factor = pd.DataFrame(index=growth_qualified_stocks)
+    factor = pd.DataFrame(index=growth_qualified_stocks, columns=['EGRO'])
 
     for stock in growth_qualified_stocks:
-        query = rqdatac.query(rqdatac.financials.financial_indicator.earnings_per_share).filter(rqdatac.financials.stockcode.in_([stock]))
-        eps_recent = rqdatac.get_financials(query, annual_report[stock], '1q')
-        eps_last_year = rqdatac.get_financials(query, annual_report_last_year, '1q')
-        eps_2_year_ago = rqdatac.get_financials(query, annual_report_2_year_ago, '1q')
-        eps_3_year_ago = rqdatac.get_financials(query, annual_report_3_year_ago, '1q')
-        eps_4_year_ago = rqdatac.get_financials(query, annual_report_4_year_ago, '1q')
+
+        # 实际操作中发现有部分公司会在财报发布后对报表进行多次调整，调整后eps为空，比如'601519.XSHG'，该公司报表在发布后经过多次调整，2014年年报主要财务指标表"基本eps"数据缺失，但是在利润表中"基本eps"数据存在，
+        # 所以在取数据时进行判断，如果financial_indicator为首选表，income_statement 为备选表
+        query_f = rqdatac.query(rqdatac.financials.financial_indicator.earnings_per_share).filter(
+            rqdatac.financials.stockcode.in_([stock]))
+
+        query_i = rqdatac.query(rqdatac.financials.income_statement.basic_earnings_per_share).filter(
+            rqdatac.financials.stockcode.in_([stock]))
+
+        eps_recent = rqdatac.get_financials(query_f, annual_report[stock], '1q') if \
+            rqdatac.get_financials(query_f, annual_report[stock], '1q').isnull().sum() == 0 \
+            else rqdatac.get_financials(query_i, annual_report[stock], '1q')
+        eps_last_year = rqdatac.get_financials(query_f, annual_report_last_year[stock], '1q') if \
+            rqdatac.get_financials(query_f, annual_report_last_year[stock], '1q').isnull().sum() == 0 \
+            else rqdatac.get_financials(query_i, annual_report_last_year[stock], '1q')
+        eps_2_year_ago = rqdatac.get_financials(query_f, annual_report_2_year_ago[stock], '1q') if \
+            rqdatac.get_financials(query_f, annual_report_2_year_ago[stock], '1q').isnull().sum() == 0 \
+            else rqdatac.get_financials(query_i, annual_report_2_year_ago[stock], '1q')
+        eps_3_year_ago = rqdatac.get_financials(query_f, annual_report_3_year_ago[stock], '1q') if \
+            rqdatac.get_financials(query_f, annual_report_3_year_ago[stock], '1q').isnull().sum() == 0 \
+            else rqdatac.get_financials(query_i, annual_report_3_year_ago[stock], '1q')
+        eps_4_year_ago = rqdatac.get_financials(query_f, annual_report_4_year_ago[stock], '1q') if \
+            rqdatac.get_financials(query_f, annual_report_4_year_ago[stock], '1q').isnull().sum() == 0 \
+            else rqdatac.get_financials(query_i, annual_report_4_year_ago[stock], '1q')
 
         regression = linear_model.LinearRegression()
         eps = np.array(
-            [eps_recent, eps_last_year, eps_2_year_ago, eps_3_year_ago,eps_4_year_ago])
+            [eps_recent, eps_last_year, eps_2_year_ago, eps_3_year_ago, eps_4_year_ago])
         regression.fit(eps.reshape(-1, 1), ([4, 3, 2, 1, 0]))
-        factor[stock] = float(regression.coef_ )/ eps.mean()
+        factor['EGRO'][stock] = float(regression.coef_) / eps.mean()
 
     return factor
 
 
-
 date = '2018-02-02'
-sale_grow = sales_growth(date)
-earning_grow = earnings_growth(date)
-growth = pd.concat([sale_grow,earning_grow],axis=1)
+sale_growth = sales_growth(date)
+earning_growth = earnings_growth(date)
+growth = pd.DataFrame(index=sale_growth.index,columns=['growth'])
+growth['growth']=[sale_growth.loc[stock].values[0]*(47/71)+earning_growth.loc[stock].values[0]*(24/71) for stock in sale_growth.index.tolist()]
 growth.to_csv('/Users/rice/Desktop/Barr factor/growth.csv', index=True, na_rep='NaN', header=True)
-
-
