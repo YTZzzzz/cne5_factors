@@ -82,6 +82,29 @@ def get_daily_excess_return(stock_list, start_date, end_date):
 '''
 
 
+# 使用中证全指作为market portfolio
+def get_daily_excess_return(stock_list, start_date, end_date):
+
+    # 提取股票价格数据，对于退市情况，考虑作股价向前填补（日收益率为0）
+    stock_list = [stock for stock in stock_list if rqdatac.instruments(stock).listed_date < end_date]
+
+    daily_return = rqdatac.get_price_change_rate(stock_list,start_date,end_date)
+
+    market_portfolio_daily_return = rqdatac.get_price_change_rate('000985.XSHG',start_date,end_date)
+
+    compounded_risk_free_return = rqdatac.get_yield_curve(start_date=start_date, end_date=end_date, tenor='0S')
+    risk_free_return = (((1 + compounded_risk_free_return) ** (1/365)) - 1).loc[daily_return.index]
+
+    daily_excess_return = daily_return.T.subtract(risk_free_return.iloc[:, 0]).T
+
+    market_portfolio_daily_excess_return = market_portfolio_daily_return.subtract(risk_free_return.iloc[:, 0])
+
+    # 剔除收益率数据少于66个的股票
+    inds = daily_return.isnull().sum()[daily_return.isnull().sum() > (len(daily_return) - 66)].index
+
+    return daily_excess_return.drop(daily_excess_return[inds], axis=1), market_portfolio_daily_excess_return
+
+
 def get_daily_excess_return(stock_list, start_date, end_date):
 
     # 提取股票价格数据，对于退市情况，考虑作股价向前填补（日收益率为0）

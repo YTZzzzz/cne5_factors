@@ -12,8 +12,8 @@ from datetime import timedelta
 from sklearn import linear_model
 
 import rqdatac
-
-rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
+rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
+#rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
 
 
 def size(market_cap_on_current_day):
@@ -29,7 +29,8 @@ def non_linear_size(size_exposure, market_cap_on_current_day):
 
     processed_cubed_size = winsorization_and_market_cap_weighed_standardization(cubed_size, market_cap_on_current_day)
 
-    orthogonalized_cubed_size = orthogonalize(target_variable = processed_cubed_size, reference_variable = size_exposure, regression_weight = np.sqrt(market_cap_on_current_day)/(np.sqrt(market_cap_on_current_day).sum()))
+    orthogonalized_cubed_size = orthogonalize(target_variable = processed_cubed_size, reference_variable = size_exposure,
+                                              regression_weight = np.sqrt(market_cap_on_current_day)/(np.sqrt(market_cap_on_current_day).sum()))
 
     processed_orthogonalized_cubed_size = winsorization_and_market_cap_weighed_standardization(orthogonalized_cubed_size, market_cap_on_current_day)
 
@@ -82,7 +83,7 @@ def get_cumulative_range(stock_list, date, market_cap_on_current_day):
 
     compounded_risk_free_return = rqdatac.get_yield_curve(start_date=trading_date_253_before, end_date=date, tenor='0S')
 
-    risk_free_return = (((1 + compounded_risk_free_return) ** (1 / 252)) - 1).loc[daily_return.index]
+    risk_free_return = (((1 + compounded_risk_free_return) ** (1 / 365)) - 1).loc[daily_return.index]
 
     # 每21个交易日为一个时间区间
 
@@ -112,8 +113,6 @@ def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, ma
     for stock in stock_excess_return.columns:
 
         weighted_residual_volatiltiy[stock] = ((stock_excess_return[stock] - market_portfolio_beta[stock] * market_portfolio_excess_return).multiply(exp_weight)).std()
-
-        #weighted_residual_volatiltiy[stock] = ((stock_excess_return[stock] - market_portfolio_beta[stock] * market_portfolio_excess_return).replace(np.nan, 0).multiply(exp_weight)).std()
 
     # 相对于贝塔正交化，降低波动率因子和贝塔因子的共线性
 
@@ -150,7 +149,7 @@ def get_momentum(stock_list, date, market_cap_on_current_day):
 
     compounded_risk_free_return = rqdatac.get_yield_curve(start_date=trading_date_505_before, end_date=date, tenor='0S')
 
-    risk_free_return = (((1 + compounded_risk_free_return) ** (1 / 252)) - 1).loc[daily_return.index]
+    risk_free_return = (((1 + compounded_risk_free_return) ** (1 / 365)) - 1).loc[daily_return.index]
 
     relative_strength = np.log(1 + daily_return).T.subtract(np.log(1 + risk_free_return.iloc[:, 0])).dot(exp_weight)
 
@@ -192,7 +191,7 @@ def get_earning_to_price_ratio(date,market_cap_on_current_day):
 
     ep_ratio = (net_profit_ttm/market_cap_on_current_day[net_profit_ttm.index]).T
 
-    processed_ep =  winsorization_and_market_cap_weighed_standardization(ep_ratio, market_cap_on_current_day)
+    processed_ep = winsorization_and_market_cap_weighed_standardization(ep_ratio, market_cap_on_current_day)
 
     return processed_ep
 
@@ -200,19 +199,15 @@ def get_earning_to_price_ratio(date,market_cap_on_current_day):
 # CETOP:Trailing cash earning to price ratio
 def get_cash_earnings_to_price_ratio(date,market_cap_on_current_day):
 
-    cash_flow_from_operating_activities_ttm = ttm_sum(rqdatac.financials.cash_flow_statement.cash_flow_from_operating_activities,date)
+    cash_earnings = ttm_sum(rqdatac.financials.financial_indicator.earnings_per_share,date)
 
-    stock_list = cash_flow_from_operating_activities_ttm.index.tolist()
+    stock_list = cash_earnings.index.tolist()
 
-    total_shares = rqdatac.get_shares(stock_list,start_date=date, end_date=date, fields='total')
+    share_price = rqdatac.get_price(stock_list, start_date=date, end_date=date, fields='close', adjust_type='pre')
 
-    share_price = rqdatac.get_price(stock_list,start_date=date,end_date=date,fields='close')
+    cash_earnings_to_price = cash_earnings / share_price.T[date]
 
-    operating_cash_per_share = cash_flow_from_operating_activities_ttm / total_shares
-
-    cash_earning_to_price= operating_cash_per_share.T/share_price.T
-
-    processed_cash_earning =  winsorization_and_market_cap_weighed_standardization(cash_earning_to_price[date], market_cap_on_current_day)
+    processed_cash_earning = winsorization_and_market_cap_weighed_standardization(cash_earnings_to_price,market_cap_on_current_day)
 
     return processed_cash_earning
 
@@ -261,7 +256,7 @@ def get_debt_to_asset(date,market_cap_on_current_day):
 
 
 # BLEV: book leverage = (BE+PE+LD)/BE BE:普通股权账面价值 PE：优先股账面价值 LD:长期负债账面价值
-# 由于BE=total equity-equity_prefer_stock
+# BE=paid_in_capital
 def get_book_leverage(date,market_cap_on_current_day):
 
     book_value_of_common_stock = lf(rqdatac.financials.balance_sheet.paid_in_capital,date)
@@ -288,8 +283,11 @@ def get_sales_growth(date,year,market_cap_on_current_day):
 
     factor = pd.DataFrame(index=growth_qualified_stocks, columns=['SGRO'])
 
+    # 根据年报数据计算每只股票过去五年每年的sales per share
+
     for stock in growth_qualified_stocks:
-        query = rqdatac.query(rqdatac.financials.income_statement.operating_revenue).filter(
+
+        query = rqdatac.query(rqdatac.financials.income_statement.revenue).filter(
             rqdatac.financials.stockcode.in_([stock]))
         sales_recent = rqdatac.get_financials(query, annual_report[stock], '1q')
 
@@ -347,9 +345,9 @@ def get_sales_growth(date,year,market_cap_on_current_day):
         sales_per_share_4_year_ago = sales_4_year_ago.values / shares_4_year_ago.values
 
         regression = linear_model.LinearRegression()
-        sales_per_share = np.array(
+        sales_per_share = pd.Series(
             [sales_per_share_recent, sales_per_share_last_year, sales_per_share_2_year_ago, sales_per_share_3_year_ago,
-             sales_per_share_4_year_ago])
+             sales_per_share_4_year_ago]).fillna(value=0)
         regression.fit(year.reshape(-1, 1), sales_per_share)
         factor['SGRO'][stock] = float(regression.coef_) / abs(sales_per_share).mean()
 
@@ -379,22 +377,26 @@ def get_earnings_growth(date,year,market_cap_on_current_day):
         eps_recent = rqdatac.get_financials(query_f, annual_report[stock], '1q') if \
             rqdatac.get_financials(query_f, annual_report[stock], '1q').isnull().sum() == 0 \
             else rqdatac.get_financials(query_i, annual_report[stock], '1q')
+
         eps_last_year = rqdatac.get_financials(query_f, annual_report_last_year[stock], '1q') if \
             rqdatac.get_financials(query_f, annual_report_last_year[stock], '1q').isnull().sum() == 0 \
             else rqdatac.get_financials(query_i, annual_report_last_year[stock], '1q')
+
         eps_2_year_ago = rqdatac.get_financials(query_f, annual_report_2_year_ago[stock], '1q') if \
             rqdatac.get_financials(query_f, annual_report_2_year_ago[stock], '1q').isnull().sum() == 0 \
             else rqdatac.get_financials(query_i, annual_report_2_year_ago[stock], '1q')
+
         eps_3_year_ago = rqdatac.get_financials(query_f, annual_report_3_year_ago[stock], '1q') if \
             rqdatac.get_financials(query_f, annual_report_3_year_ago[stock], '1q').isnull().sum() == 0 \
             else rqdatac.get_financials(query_i, annual_report_3_year_ago[stock], '1q')
+
         eps_4_year_ago = rqdatac.get_financials(query_f, annual_report_4_year_ago[stock], '1q') if \
             rqdatac.get_financials(query_f, annual_report_4_year_ago[stock], '1q').isnull().sum() == 0 \
             else rqdatac.get_financials(query_i, annual_report_4_year_ago[stock], '1q')
 
         regression = linear_model.LinearRegression()
-        eps = np.array(
-            [eps_recent, eps_last_year, eps_2_year_ago, eps_3_year_ago, eps_4_year_ago])
+        eps = pd.Series(
+            [eps_recent, eps_last_year, eps_2_year_ago, eps_3_year_ago, eps_4_year_ago]).fillna(value=0)
         regression.fit(year.reshape(-1, 1), eps)
         factor['EGRO'][stock] = float(regression.coef_) / abs(eps.mean())
     earning_growth = winsorization_and_market_cap_weighed_standardization(factor['EGRO'], market_cap_on_current_day)
@@ -402,7 +404,7 @@ def get_earnings_growth(date,year,market_cap_on_current_day):
     return earning_growth
 
 
-date = '2018-02-12'
+date = '2018-02-06'
 year = pd.Series([48, 36, 24, 12, 0])
 
 
