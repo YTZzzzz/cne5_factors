@@ -418,7 +418,7 @@ def get_style_factors(date):
 
     stock_excess_return, market_portfolio_excess_return = get_daily_excess_return(stock_list, trading_date_252_before.strftime('%Y-%m-%d'), latest_trading_date.strftime('%Y-%m-%d'))
 
-    market_cap_on_current_day = rqdatac.get_factor(id_or_symbols = stock_excess_return.columns.tolist(), factor = 'market_cap', start_date = latest_trading_date.strftime('%Y-%m-%d'), end_date = latest_trading_date.strftime('%Y-%m-%d'))
+    market_cap_on_current_day = rqdatac.get_factor(id_or_symbols=stock_excess_return.columns.tolist(),factor='a_share_market_val',start_date=latest_trading_date.strftime('%Y-%m-%d'),end_date=latest_trading_date.strftime('%Y-%m-%d'))
 
     size_exposure = size(market_cap_on_current_day)
 
@@ -432,7 +432,11 @@ def get_style_factors(date):
 
     historical_sigma_exposure = get_historical_sigma(stock_excess_return, market_portfolio_excess_return, market_portfolio_beta, market_portfolio_beta_exposure, market_cap_on_current_day)
 
-    residual_volatility_exposure = 0.74*daily_standard_deviation_exposure + 0.16*cumulative_range_exposure + 0.1*historical_sigma_exposure
+    residual_volatility_exposure = 0.74 * daily_standard_deviation_exposure + 0.16 * cumulative_range_exposure + 0.1 * historical_sigma_exposure
+
+    orthogonalized_residual_volatility_exposure = orthogonalize(target_variable=residual_volatility_exposure,reference_variable=market_portfolio_beta_exposure,regression_weight=np.sqrt(market_cap_on_current_day) / (np.sqrt(market_cap_on_current_day).sum()))
+
+    residual_volatility_exposure = winsorization_and_market_cap_weighed_standardization(orthogonalized_residual_volatility_exposure, market_cap_on_current_day)
 
     momentum_exposure = get_momentum(stock_list, latest_trading_date, market_cap_on_current_day)
 

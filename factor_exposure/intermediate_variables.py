@@ -29,13 +29,28 @@ def drop_suspended_stock(stock_list,date):
     return stock_list_drop_suspended
 
 
-def drop_listed_less_1year_stock(stock_list,date):
+def drop_stock(days,date,stock_list):
 
-    trading_date_252_before = rqdatac.get_trading_dates(date - timedelta(days=500), date, country='cn')[-252]
+    threshold_date = rqdatac.get_trading_dates(date - timedelta(days=days*2), date, country='cn')[-days]
 
-    qualified_stocks = [i for i in stock_list if rqdatac.instruments(i).listed_date < str(trading_date_252_before)]
+    stock_list = [stock for stock in stock_list if rqdatac.instruments(stock).listed_date < str(threshold_date)]
 
-    return qualified_stocks
+
+    return stock_list
+
+
+def risk_free_rate(date):
+
+    shibor_now = pd.Series(ts.shibor_data(date.year)['3M'].values, index=ts.shibor_data(date.year)['date'])
+
+    shibor_last_year = pd.Series(ts.shibor_data(date.year-1)['3M'].values, index=ts.shibor_data(date.year-1)['date'])
+
+    shibor_2years_ago = pd.Series(ts.shibor_data(date.year-2)['3M'].values, index=ts.shibor_data(date.year-2)['date'])
+
+    RF_rate = pd.concat([shibor_2years_ago,shibor_last_year,shibor_now], axis=0)
+
+    return RF_rate
+
 
 '''
 def get_daily_excess_return(stock_list, start_date, end_date):
