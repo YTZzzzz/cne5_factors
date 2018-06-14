@@ -82,19 +82,7 @@ def get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_re
 
     trailing_earnings_to_price_ratio = get_trailing_earning_to_price_ratio(latest_trading_date.strftime('%Y-%m-%d'), market_cap_on_current_day, recent_report_type, annual_report_type)
 
-    cash_earnings_to_price_ratio = get_cash_earnings_to_price_ratio(latest_trading_date.strftime('%Y-%m-%d'), market_cap_on_current_day, recent_report_type, annual_report_type)
-
-    atomic_descriptors_df = pd.concat([trailing_earnings_to_price_ratio, cash_earnings_to_price_ratio], axis = 1)
-
-    atomic_descriptors_df.columns = ['trailing_earnings_to_price_ratio', 'cash_earnings_to_price_ratio']
-
-    atom_descriptors_weight = pd.Series(data = [0.11/(0.11 + 0.21), 0.21/(0.11 + 0.21)], index = ['trailing_earnings_to_price_ratio', 'cash_earnings_to_price_ratio'])
-
-    earnings_yield = atomic_descriptors_imputation_and_combination(atomic_descriptors_df, atom_descriptors_weight)
-
-    processed_earnings_yield_exposure = winsorization_and_market_cap_weighed_standardization(earnings_yield, market_cap_on_current_day)
-
-    return trailing_earnings_to_price_ratio, cash_earnings_to_price_ratio, processed_earnings_yield_exposure
+    return trailing_earnings_to_price_ratio
 
 
 def get_residual_volatility(stock_list, latest_trading_date, stock_excess_return, market_cap_on_current_day, market_portfolio_beta):
@@ -204,7 +192,6 @@ def get_liquidity(stock_list, date, market_cap_on_current_day):
     return one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover, processed_liquidity_exposure
 
 
-
 def get_non_linear_size(size_exposure, market_cap_on_current_day):
 
     cubed_size = np.power(size_exposure, 3)
@@ -250,7 +237,7 @@ def get_style_factors(date):
 
     one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover, liquidity = get_liquidity(stock_list, latest_trading_date, market_cap_on_current_day)
 
-    trailing_earnings_to_price_ratio, cash_earnings_to_price_ratio, earnings_yield = get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type, annual_report_type)
+    earnings_yield = get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type, annual_report_type)
 
     book_to_price = get_book_to_price_ratio(market_cap_on_current_day, last_reported_preferred_stock, recent_report_type)
 
@@ -263,10 +250,10 @@ def get_style_factors(date):
     style_factors_exposure.columns = ['beta', 'momentum', 'size', 'earnings_yield', 'residual_volatility', 'growth', 'book_to_price', 'leverage', 'liquidity', 'non_linear_size']
 
     atomic_descriptors_exposure = pd.concat([daily_standard_deviation, cumulative_range, historical_sigma,  one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover,\
-                                             trailing_earnings_to_price_ratio, cash_earnings_to_price_ratio, market_leverage, debt_to_assets, book_leverage, sales_growth, earnings_growth], axis = 1)
+                                             market_leverage, debt_to_assets, book_leverage, sales_growth, earnings_growth], axis = 1)
 
     atomic_descriptors_exposure.columns = ['daily_standard_deviation', 'cumulative_range', 'historical_sigma',  'one_month_share_turnover', 'three_months_share_turnover', 'twelve_months_share_turnover',\
-                                             'trailing_earnings_to_price_ratio', 'cash_earnings_to_price_ratio', 'market_leverage', 'debt_to_assets', 'book_leverage', 'sales_growth', 'earnings_growth']
+                                             'market_leverage', 'debt_to_assets', 'book_leverage', 'sales_growth', 'earnings_growth']
 
 
     # 提取财务数据的时候，会提取当前全市场股票的数据，因此 dataframe 中可能包含计算日期未上市的股票，需要对 style_factors_exposure 取子集

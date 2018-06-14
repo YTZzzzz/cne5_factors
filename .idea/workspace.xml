@@ -2,15 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d1e08ce0-9409-403a-8bc4-601026feb35f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/cne5_factors.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/cne5_factors.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factor_exposure/data_comparison.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/data_comparison.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factor_exposure/get_style_factors.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/get_style_factors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factor_exposure/intermediate_variables.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/intermediate_variables.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factor_exposure/operators.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/operators.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factor_exposure/test.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -24,8 +17,8 @@
       <file leaf-file-name="intermediate_variables.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_exposure/intermediate_variables.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="391">
-              <caret line="103" selection-end-line="276" />
+            <state relative-caret-position="263">
+              <caret line="115" lean-forward="true" selection-start-line="115" selection-end-line="115" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
                 <element signature="e#441#885#0" />
@@ -34,11 +27,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="get_style_factors.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="get_style_factors.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/factor_exposure/get_style_factors.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="579">
-              <caret line="283" column="93" selection-start-line="283" selection-start-column="93" selection-end-line="283" selection-end-column="93" />
+            <state relative-caret-position="1869">
+              <caret line="257" lean-forward="true" selection-start-line="257" selection-end-line="257" />
             </state>
           </provider>
         </entry>
@@ -58,20 +51,17 @@
       <file leaf-file-name="atomic_descriptors.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_exposure/atomic_descriptors.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-997">
-              <caret line="115" column="46" selection-start-line="115" selection-start-column="46" selection-end-line="115" selection-end-column="46" />
-              <folding>
-                <element signature="e#5116#5646#0" />
-              </folding>
+            <state relative-caret-position="199">
+              <caret line="122" selection-start-line="122" selection-end-line="122" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_comparison.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="data_comparison.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_exposure/data_comparison.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="422">
-              <caret line="66" column="153" selection-start-line="66" selection-start-column="37" selection-end-line="66" selection-end-column="154" />
+            <state relative-caret-position="527">
+              <caret line="73" lean-forward="true" selection-start-line="73" selection-end-line="73" />
             </state>
           </provider>
         </entry>
@@ -95,10 +85,10 @@
         <option value="$PROJECT_DIR$/factor_exposure/fundamental_based_style_factor_exposure.py" />
         <option value="$PROJECT_DIR$/factor_exposure/market_based_style_factor_exposure_backup.py" />
         <option value="$PROJECT_DIR$/factor_exposure/operators.py" />
-        <option value="$PROJECT_DIR$/factor_exposure/get_style_factors.py" />
+        <option value="$PROJECT_DIR$/factor_exposure/data_comparison.py" />
         <option value="$PROJECT_DIR$/factor_exposure/intermediate_variables.py" />
         <option value="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" />
-        <option value="$PROJECT_DIR$/factor_exposure/data_comparison.py" />
+        <option value="$PROJECT_DIR$/factor_exposure/get_style_factors.py" />
       </list>
     </option>
   </component>
@@ -224,9 +214,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="30">
           <caret line="2" column="70" selection-start-line="2" selection-start-column="70" selection-end-line="2" selection-end-column="70" />
-          <folding>
-            <element signature="e#5116#5646#0" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -519,6 +506,24 @@
     <entry file="file://$PROJECT_DIR$/factor_exposure/test.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/factor_exposure/data_comparison.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="527">
+          <caret line="73" lean-forward="true" selection-start-line="73" selection-end-line="73" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/factor_exposure/intermediate_variables.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="263">
+          <caret line="115" lean-forward="true" selection-start-line="115" selection-end-line="115" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#441#885#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/operators.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-475">
@@ -531,36 +536,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/atomic_descriptors.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-997">
-          <caret line="115" column="46" selection-start-line="115" selection-start-column="46" selection-end-line="115" selection-end-column="46" />
-          <folding>
-            <element signature="e#5116#5646#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/factor_exposure/intermediate_variables.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="103" selection-end-line="276" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-            <element signature="e#441#885#0" />
-          </folding>
+        <state relative-caret-position="199">
+          <caret line="122" selection-start-line="122" selection-end-line="122" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/get_style_factors.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="579">
-          <caret line="283" column="93" selection-start-line="283" selection-start-column="93" selection-end-line="283" selection-end-column="93" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/factor_exposure/data_comparison.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="422">
-          <caret line="66" column="153" selection-start-line="66" selection-start-column="37" selection-end-line="66" selection-end-column="154" />
+        <state relative-caret-position="1869">
+          <caret line="257" lean-forward="true" selection-start-line="257" selection-end-line="257" />
         </state>
       </provider>
     </entry>

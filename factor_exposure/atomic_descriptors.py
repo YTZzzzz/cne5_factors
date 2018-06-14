@@ -122,23 +122,6 @@ def get_trailing_earning_to_price_ratio(date, market_cap_on_current_day, recent_
     return processed_earning_to_price
 
 
-# CETOP:Trailing cash earning to price ratio
-
-def get_cash_earnings_to_price_ratio(date, market_cap_on_current_day, recent_report_type, annual_report_type):
-
-    cash_earnings = get_ttm_sum(rqdatac.financials.financial_indicator.earnings_per_share, date, recent_report_type, annual_report_type)
-
-    stock_list = cash_earnings.index.tolist()
-
-    share_price = rqdatac.get_price(stock_list, start_date=date, end_date=date, fields='close', adjust_type='pre')
-
-    cash_earnings_to_price = cash_earnings / share_price.T[date]
-
-    processed_cash_earning = winsorization_and_market_cap_weighed_standardization(cash_earnings_to_price, market_cap_on_current_day)
-
-    return processed_cash_earning
-
-
 # style:leverage
 
 # MLEV: Market leverage = (ME+PE+LD)/ME ME:最新市值 PE:最新优先股账面价值 LD:长期负债账面价值
