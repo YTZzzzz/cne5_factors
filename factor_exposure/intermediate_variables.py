@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -5,13 +7,14 @@ from datetime import datetime
 import rqdatac
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
 
+sys.path.append("/Users/rice/Documents/cne5_factors/factor_exposure/")
+
+
 def get_exponential_weight(half_life, length):
 
     # 生成权重后，需要对数组进行倒序（[::-1]）
 
     return np.cumprod(np.repeat(1/np.exp(np.log(2)/half_life), length))[::-1]
-
-
 
 
 def risk_free_rate(date):
@@ -27,7 +30,6 @@ def risk_free_rate(date):
     return RF_rate
 
 
-
 def get_market_portfolio_return(filtered_stock_daily_return, market_cap_on_current_day):
 
     market_cap_filtered_universe = market_cap_on_current_day[market_cap_on_current_day > 3000000000].index.tolist()
@@ -39,7 +41,6 @@ def get_market_portfolio_return(filtered_stock_daily_return, market_cap_on_curre
     market_portfolio_daily_return = pd.Series(np.diag(filtered_stock_daily_return[qualified_universe].replace(np.nan, 0).dot((market_cap_on_current_day[qualified_universe].replace(np.nan, 0)/market_cap_on_current_day.sum()).T)), index=qualified_universe)
 
     return market_portfolio_daily_return
-
 
 
 def get_daily_excess_return(stock_list, market_cap_on_current_day, start_date, end_date):
@@ -75,7 +76,6 @@ def get_daily_excess_return(stock_list, market_cap_on_current_day, start_date, e
     return daily_excess_return, market_portfolio_daily_excess_return
 
 
-
 def get_recent_financial_report(date):
 
     previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
@@ -106,7 +106,11 @@ def get_recent_five_annual_shares(stock_list, date):
 
     previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
 
-    list_of_dates = [str(previous_year) + '-05-01', str(previous_year - 1) + '-05-01', str(previous_year - 2) + '-05-01', str(previous_year - 3) + '-05-01', str(previous_year - 4) + '-05-01' ]
+    month = datetime.strptime(date, '%Y-%m-%d').month
+
+    list_of_dates = [str(previous_year) + '-05-01', str(previous_year - 1) + '-05-01',str(previous_year - 2) + '-05-01', str(previous_year - 3) + '-05-01',str(previous_year - 4) + '-05-01'] \
+        if month > 5 \
+        else [str(previous_year-1) + '-05-01', str(previous_year - 2) + '-05-01',str(previous_year - 3) + '-05-01', str(previous_year - 4) + '-05-01',str(previous_year - 5) + '-05-01']
 
     recent_five_annual_shares = pd.DataFrame()
 
@@ -246,53 +250,6 @@ def get_financial_and_market_data(stock_list, latest_trading_date, trading_date_
     last_reported_preferred_stock = get_last_reported_values(rqdatac.financials.balance_sheet.equity_prefer_stock, recent_report_type).fillna(value=0)
 
     return recent_report_type, annual_report_type, market_cap_on_current_day, stock_excess_return, market_portfolio_excess_return, recent_five_annual_shares, last_reported_non_current_liabilities, last_reported_preferred_stock
-
-
-
-
-def get_shenwan_industry_exposure(stock_list, date):
-
-    industry_classification = rqdatac.shenwan_instrument_industry(stock_list, date)
-
-    industry_classification_missing_stocks = list(set(stock_list) - set(industry_classification.index.tolist()))
-
-    # 当传入股票过多时，对于缺失行业标记的股票，RQD 目前不会向前搜索，因此需要循环单个传入查找这些股票的行业标记
-
-    if len(industry_classification_missing_stocks) != 0:
-
-        for stock in industry_classification_missing_stocks:
-
-            missing_industry_classification = rqdatac.shenwan_instrument_industry(stock, date)
-
-            if missing_industry_classification != None:
-
-                industry_classification = industry_classification.append(pd.Series([missing_industry_classification[0], missing_industry_classification[1]], index=['index_code','index_name'], name = stock))
-
-    shenwan_industry_name = ['农林牧渔', '采掘', '化工', '钢铁', '有色金属', '电子', '家用电器', '食品饮料', '纺织服装', '轻工制造',\
-                             '医药生物', '公用事业', '交通运输', '房地产', '商业贸易', '休闲服务','综合', '建筑材料',  '建筑装饰', '电气设备',\
-                             '国防军工', '计算机', '传媒', '通信', '银行', '非银金融', '汽车', '机械设备']
-
-
-    # 在 stock_list 中仅有一个股票的情况下，返回格式为 tuple
-
-    if isinstance(industry_classification, tuple):
-
-        industry_name = industry_classification[1]
-
-        industry_exposure_df = pd.DataFrame(0, index = shenwan_industry_name, columns = stock_list).T
-
-        industry_exposure_df[industry_name] = 1
-
-    else:
-
-        industry_exposure_df = pd.DataFrame(0, index = industry_classification.index, columns = shenwan_industry_name)
-
-        for industry in shenwan_industry_name:
-
-            industry_exposure_df.loc[industry_classification[industry_classification['index_name'] == industry].index, industry] = 1
-
-    return industry_exposure_df
-
 
 
 def get_shenwan_industry_label(stock_list, date):

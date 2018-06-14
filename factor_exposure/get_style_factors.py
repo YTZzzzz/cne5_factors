@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("/Users/jjj728/git/cne5_factors/factor_exposure/")
+sys.path.append("/Users/rice/Documents/cne5_factors/factor_exposure/")
 
 from intermediate_variables import *
 from operators import *
@@ -15,9 +15,6 @@ from sklearn import linear_model
 import rqdatac
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
 #rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
-
-
-
 
 
 def get_market_portfolio_beta(stock_excess_return, market_portfolio_excess_return, market_cap_on_current_day):
@@ -39,7 +36,6 @@ def get_market_portfolio_beta(stock_excess_return, market_portfolio_excess_retur
     # 细分因子 historical_sigma 的计算需要 beta 的原始值，所以同时返回原始暴露度和标准化暴露度
 
     return market_portfolio_beta, market_portfolio_beta_exposure
-
 
 
 def get_momentum(stock_list, date, market_cap_on_current_day):
@@ -75,13 +71,11 @@ def get_momentum(stock_list, date, market_cap_on_current_day):
     return processed_relative_strength
 
 
-
 def get_size(market_cap_on_current_day):
 
     processed_size = winsorization_and_market_cap_weighed_standardization(np.log(market_cap_on_current_day.replace(0, np.nan)), market_cap_on_current_day)
 
     return processed_size
-
 
 
 def get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type, annual_report_type):
@@ -101,7 +95,6 @@ def get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_re
     processed_earnings_yield_exposure = winsorization_and_market_cap_weighed_standardization(earnings_yield, market_cap_on_current_day)
 
     return trailing_earnings_to_price_ratio, cash_earnings_to_price_ratio, processed_earnings_yield_exposure
-
 
 
 def get_residual_volatility(stock_list, latest_trading_date, stock_excess_return, market_cap_on_current_day, market_portfolio_beta):
@@ -125,9 +118,6 @@ def get_residual_volatility(stock_list, latest_trading_date, stock_excess_return
     return daily_standard_deviation_exposure, cumulative_range_exposure, historical_sigma_exposure, processed_residual_volatility_exposure
 
 
-
-
-
 def get_growth(latest_trading_date, market_cap_on_current_day, recent_five_annual_shares, recent_report_type):
 
     sales_growth = get_sales_growth(latest_trading_date.strftime('%Y-%m-%d'), market_cap_on_current_day, recent_five_annual_shares, recent_report_type)
@@ -147,7 +137,6 @@ def get_growth(latest_trading_date, market_cap_on_current_day, recent_five_annua
     return sales_growth, earnings_growth, processed_growth_exposure
 
 
-
 # book-to-price = (股东权益合计-优先股)/市值
 
 def get_book_to_price_ratio(market_cap_on_current_day, last_reported_preferred_stock, recent_report_type):
@@ -159,7 +148,6 @@ def get_book_to_price_ratio(market_cap_on_current_day, last_reported_preferred_s
     processed_book_to_price_ratio = winsorization_and_market_cap_weighed_standardization(book_to_price_ratio, market_cap_on_current_day[last_reported_total_equity.index])
 
     return processed_book_to_price_ratio
-
 
 
 def get_leverage(market_cap_on_current_day, last_reported_non_current_liabilities, last_reported_preferred_stock, recent_report_type):
@@ -228,8 +216,6 @@ def get_non_linear_size(size_exposure, market_cap_on_current_day):
     processed_orthogonalized_cubed_size = winsorization_and_market_cap_weighed_standardization(orthogonalized_cubed_size, market_cap_on_current_day)
 
     return processed_orthogonalized_cubed_size
-
-
 
 
 date = '2018-02-06'

@@ -2,7 +2,9 @@ import scipy.optimize as sc_opt
 import numpy as np
 import pandas as pd
 
-sys.path.append("/Users/jjj728/git/cne5_factors/factor_exposure/")
+import sys
+
+sys.path.append("/Users/rice/Documents/cne5_factors/factor_exposure/")
 
 from intermediate_variables import *
 
@@ -41,7 +43,6 @@ def orthogonalize(target_variable, reference_variable, regression_weight):
     orthogonalized_target_variable = target_variable - res['x'] * reference_variable
 
     return orthogonalized_target_variable
-
 
 
 def atomic_descriptors_imputation_and_combination(atomic_descriptors_df, atom_descriptors_weight):
@@ -100,8 +101,6 @@ def style_factors_imputation(style_factors_exposure, market_cap_on_current_day, 
                 imputed_style_factors_exposure.loc[missing_data_stock_list, factor] = exogenous_variables.dot(st_result.params)
 
     return imputed_style_factors_exposure
-
-
 
 
 

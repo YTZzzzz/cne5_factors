@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("/Users/jjj728/git/cne5_factors/factor_exposure/")
+sys.path.append("/Users/rice/Documents/cne5_factors/factor_exposure/")
 
 from intermediate_variables import *
 from operators import *
@@ -14,9 +14,6 @@ from sklearn import linear_model
 import rqdatac
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
 #rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
-
-
-
 
 
 def get_daily_standard_deviation(stock_excess_return, market_cap_on_current_day):
@@ -34,8 +31,6 @@ def get_daily_standard_deviation(stock_excess_return, market_cap_on_current_day)
     processed_weighted_stock_standard_deviation = winsorization_and_market_cap_weighed_standardization(weighted_stock_standard_deviation, market_cap_on_current_day)
 
     return processed_weighted_stock_standard_deviation
-
-
 
 
 def get_cumulative_range(stock_list, date, market_cap_on_current_day):
@@ -73,8 +68,6 @@ def get_cumulative_range(stock_list, date, market_cap_on_current_day):
     processed_cumulative_range = winsorization_and_market_cap_weighed_standardization(cummulative_return.T.max() - cummulative_return.T.min(), market_cap_on_current_day)
 
     return processed_cumulative_range
-
-
 
 
 def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, market_portfolio_beta, market_cap_on_current_day):
@@ -118,8 +111,6 @@ def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, ma
     return processed_weighted_residual_volatility
 
 
-
-
 def get_trailing_earning_to_price_ratio(date, market_cap_on_current_day, recent_report_type, annual_report_type):
 
     net_profit_ttm = get_ttm_sum(rqdatac.financials.income_statement.net_profit, date, recent_report_type, annual_report_type)
@@ -146,8 +137,6 @@ def get_cash_earnings_to_price_ratio(date, market_cap_on_current_day, recent_rep
     processed_cash_earning = winsorization_and_market_cap_weighed_standardization(cash_earnings_to_price, market_cap_on_current_day)
 
     return processed_cash_earning
-
-
 
 
 # style:leverage
@@ -215,24 +204,7 @@ def get_sales_growth(date, market_cap_on_current_day, recent_five_annual_shares,
 
     regression_coefficient = pd.Series(data = covariance_of_xy/variance_of_x, index = sales_revenue_per_share.index)
 
-
-    # 对比上述最小二乘法计算和 statsmodel 的计算结果
-
-    #import statsmodels.api as st
-
-    #X = np.stack([x, np.ones(len(x))]).T
-
-    #Y = sales_revenue_per_share.loc['603993.XSHG']
-
-    #st_result = st.OLS(Y.values, X).fit()
-
-    #print(regression_coefficient.loc['603993.XSHG'])
-
-    #print(st_result.params[0])
-
-
-    return regression_coefficient/sales_revenue_per_share.T.mean()
-
+    return regression_coefficient/abs(sales_revenue_per_share).T.mean()
 
 
 def get_earnings_growth(date, market_cap_on_current_day, recent_five_annual_shares, recent_report_type):
@@ -255,7 +227,7 @@ def get_earnings_growth(date, market_cap_on_current_day, recent_five_annual_shar
 
     regression_coefficient = pd.Series(data = covariance_of_xy/variance_of_x, index = earnings_per_share.index)
 
-    return regression_coefficient/earnings_per_share.T.mean()
+    return regression_coefficient/abs(earnings_per_share).T.mean()
 
 
 
