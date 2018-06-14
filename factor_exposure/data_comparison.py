@@ -16,8 +16,6 @@ import rqdatac
 rqdatac.init('rice','rice',('192.168.10.64',16008))
 
 
-
-
 def get_style_exposure(stock_list, date):
 
     latest_trading_date = str(rqdatac.get_previous_trading_date(datetime.strptime(date, "%Y-%m-%d") + timedelta(days=1)))
@@ -49,13 +47,10 @@ def get_barra_style_exposure(date):
     return style_factor_exposure
 
 
-
-
-
 # 比对
 
 date = '2018-02-06'
-
+latest_trading_date = rqdatac.get_previous_trading_date(datetime.strptime(date, "%Y-%m-%d") + timedelta(days=1))
 stock_list = rqdatac.all_instruments(type = 'CS', date = latest_trading_date)['order_book_id'].values.tolist()
 
 atomic_descriptors_exposure, style_factors_exposure, imputed_style_factors_exposure = get_style_factors(date)
@@ -64,7 +59,31 @@ barra_style_factor_exposure = get_barra_style_exposure(date)
 
 # earnings_yield
 
-imputed_earnings_yield_correlation = pd.concat([imputed_style_factors_exposure['earnings_yield'], barra_style_factor_exposure['CNE5S_EARNYILD']], axis =1).corr()
+imputed_earnings_yield_correlation = pd.concat([imputed_style_factors_exposure['earnings_yield'].astype(np.float), barra_style_factor_exposure['CNE5S_EARNYILD']], axis =1).corr()
+
+imputed_beta_correlation = pd.concat([imputed_style_factors_exposure['beta'], barra_style_factor_exposure['CNE5S_BETA']], axis =1).corr()
+
+imputed_momentum_correlation = pd.concat([imputed_style_factors_exposure['momentum'], barra_style_factor_exposure['CNE5S_MOMENTUM']], axis =1).corr()
+
+imputed_size_correlation = pd.concat([imputed_style_factors_exposure['size'], barra_style_factor_exposure['CNE5S_SIZE']], axis =1).corr()
+
+imputed_resvol_correlation = pd.concat([imputed_style_factors_exposure['residual_volatility'], barra_style_factor_exposure['CNE5S_RESVOL']], axis =1).corr()
+
+imputed_growth_correlation = pd.concat([imputed_style_factors_exposure['growth'], barra_style_factor_exposure['CNE5S_GROWTH']], axis =1).corr()
+
+imputed_book_to_price_correlation = pd.concat([imputed_style_factors_exposure['book_to_price'].astype(np.float), barra_style_factor_exposure['CNE5S_BTOP']], axis =1).corr()
+
+imputed_leverage_correlation = pd.concat([imputed_style_factors_exposure['leverage'], barra_style_factor_exposure['CNE5S_LEVERAGE']], axis =1).corr()
+
+imputed_liquidity_correlation = pd.concat([imputed_style_factors_exposure['liquidity'], barra_style_factor_exposure['CNE5S_LIQUIDTY']], axis =1).corr()
+
+imputed_non_linear_size_correlation = pd.concat([imputed_style_factors_exposure['non_linear_size'], barra_style_factor_exposure['CNE5S_SIZENL']], axis =1).corr()
+
+
+
+liquidity_correlation = pd.concat([atomic_descriptors_exposure['historical_sigma'], barra_style_factor_exposure['CNE5S_RESVOL']], axis =1).dropna().corr()
+
+
 
 earnings_yield_correlation = pd.concat([imputed_style_factors_exposure['earnings_yield'].dropna(), barra_style_factor_exposure['CNE5S_EARNYILD'].loc[style_factors_exposure['earnings_yield'].dropna().index]], axis =1).corr()
 

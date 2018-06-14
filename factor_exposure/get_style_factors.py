@@ -80,18 +80,28 @@ def get_size(market_cap_on_current_day):
 
 def get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type, annual_report_type):
 
-    trailing_earnings_to_price_ratio = get_trailing_earning_to_price_ratio(latest_trading_date.strftime('%Y-%m-%d'), market_cap_on_current_day, recent_report_type, annual_report_type)
+    net_profit_ttm = get_ttm_sum(rqdatac.financials.income_statement.profit_before_tax, str(latest_trading_date), recent_report_type, annual_report_type)
 
-    return trailing_earnings_to_price_ratio
+    stock_list = net_profit_ttm.index.tolist()
+
+    share_price = rqdatac.get_price(stock_list, start_date=latest_trading_date, end_date=latest_trading_date, fields='close', adjust_type='none').T
+
+    shares = rqdatac.get_shares(stock_list,start_date=latest_trading_date,end_date=latest_trading_date,fields='total').T
+
+    earning_to_price = net_profit_ttm / (share_price * shares)[str(latest_trading_date)]
+
+    processed_earnings_yield= winsorization_and_market_cap_weighed_standardization(earning_to_price, market_cap_on_current_day[earning_to_price.index])
+
+    return processed_earnings_yield
 
 
-def get_residual_volatility(stock_list, latest_trading_date, stock_excess_return, market_cap_on_current_day, market_portfolio_beta):
+def get_residual_volatility(stock_list, latest_trading_date, stock_excess_return,market_portfolio_excess_return, market_cap_on_current_day,market_portfolio_beta_exposure, market_portfolio_beta):
 
     daily_standard_deviation_exposure = get_daily_standard_deviation(stock_excess_return, market_cap_on_current_day)
 
     cumulative_range_exposure = get_cumulative_range(stock_list, latest_trading_date, market_cap_on_current_day)
 
-    historical_sigma_exposure = get_historical_sigma(stock_excess_return, market_portfolio_excess_return, market_portfolio_beta, market_cap_on_current_day)
+    historical_sigma_exposure = get_historical_sigma(stock_excess_return, market_portfolio_excess_return, market_portfolio_beta, market_portfolio_beta_exposure,market_cap_on_current_day)
 
     atomic_descriptors_df = pd.concat([daily_standard_deviation_exposure, cumulative_range_exposure, historical_sigma_exposure], axis = 1)
 
@@ -163,21 +173,21 @@ def get_liquidity(stock_list, date, market_cap_on_current_day):
 
     trading_date_252_before = rqdatac.get_trading_dates(date - timedelta(days=500), date, country='cn')[-252]
 
+    #stock_without_suspended_stock = drop_suspended_stock(stock_list,date)
+
     trading_volume = rqdatac.get_price(stock_list, trading_date_252_before, date, frequency='1d', fields='volume')
 
     outstanding_shares = rqdatac.get_shares(stock_list, trading_date_252_before, date, fields='total_a')
 
-    # 成交量加1避免长期停牌导致的换手率为0，导致取对数时报错的问题
-
-    daily_turnover_rate = (trading_volume + 1).divide(outstanding_shares)
+    daily_turnover_rate = trading_volume.divide(outstanding_shares)
 
     # 对于对应时期内换手率为 0 的股票，其细分因子暴露度也设为0
 
-    one_month_share_turnover = winsorization_and_market_cap_weighed_standardization(np.log(daily_turnover_rate.iloc[-21:].sum()), market_cap_on_current_day)
+    one_month_share_turnover = winsorization_and_market_cap_weighed_standardization(np.log(daily_turnover_rate.iloc[-21:].sum().replace(0, np.nan)),market_cap_on_current_day)
 
-    three_months_share_turnover = winsorization_and_market_cap_weighed_standardization(np.log(daily_turnover_rate.iloc[-63:].sum()/3), market_cap_on_current_day)
+    three_months_share_turnover = winsorization_and_market_cap_weighed_standardization(np.log(daily_turnover_rate.iloc[-63:].sum().replace(0, np.nan)/3),market_cap_on_current_day)
 
-    twelve_months_share_turnover = winsorization_and_market_cap_weighed_standardization(np.log(daily_turnover_rate.iloc[-252:].sum()/12), market_cap_on_current_day)
+    twelve_months_share_turnover = winsorization_and_market_cap_weighed_standardization(np.log(daily_turnover_rate.iloc[-252:].sum().replace(0, np.nan)/12),market_cap_on_current_day)
 
     atomic_descriptors_df = pd.concat([one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover], axis = 1)
 
@@ -187,9 +197,9 @@ def get_liquidity(stock_list, date, market_cap_on_current_day):
 
     liquidity = atomic_descriptors_imputation_and_combination(atomic_descriptors_df, atom_descriptors_weight)
 
-    processed_liquidity_exposure = winsorization_and_market_cap_weighed_standardization(liquidity, market_cap_on_current_day)
+    processed_liquidity =  winsorization_and_market_cap_weighed_standardization(liquidity, market_cap_on_current_day)
 
-    return one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover, processed_liquidity_exposure
+    return one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover,processed_liquidity
 
 
 def get_non_linear_size(size_exposure, market_cap_on_current_day):
@@ -231,7 +241,7 @@ def get_style_factors(date):
 
     market_portfolio_beta, market_portfolio_beta_exposure = get_market_portfolio_beta(stock_excess_return, market_portfolio_excess_return, market_cap_on_current_day)
 
-    daily_standard_deviation, cumulative_range, historical_sigma, residual_volatility = get_residual_volatility(stock_list, latest_trading_date, stock_excess_return, market_cap_on_current_day, market_portfolio_beta)
+    daily_standard_deviation, cumulative_range, historical_sigma, residual_volatility = get_residual_volatility(stock_list, latest_trading_date, stock_excess_return,market_portfolio_excess_return, market_cap_on_current_day,market_portfolio_beta_exposure, market_portfolio_beta)
 
     momentum = get_momentum(stock_list, latest_trading_date, market_cap_on_current_day)
 

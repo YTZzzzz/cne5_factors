@@ -70,7 +70,7 @@ def get_cumulative_range(stock_list, date, market_cap_on_current_day):
     return processed_cumulative_range
 
 
-def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, market_portfolio_beta, market_cap_on_current_day):
+def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, market_portfolio_beta,market_portfolio_beta_exposure, market_cap_on_current_day):
 
     exp_weight = get_exponential_weight(half_life = 63, length = 252)
 
@@ -88,7 +88,9 @@ def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, ma
 
     # 相对于贝塔正交化，降低波动率因子和贝塔因子的共线性
 
-    processed_weighted_residual_volatility = winsorization_and_market_cap_weighed_standardization(weighted_residual_volatility, market_cap_on_current_day[weighted_residual_volatility.index])
+    orthogonalized_weighted_residual_volatility = orthogonalize(target_variable = weighted_residual_volatility, reference_variable = market_portfolio_beta_exposure, regression_weight = np.sqrt(market_cap_on_current_day)/(np.sqrt(market_cap_on_current_day).sum()))
+
+    processed_weighted_residual_volatility = winsorization_and_market_cap_weighed_standardization(orthogonalized_weighted_residual_volatility, market_cap_on_current_day[weighted_residual_volatility.index])
 
     # 上述贝塔个阿尔法的计算，和 statsmodel 的计算结果对比
 
@@ -109,17 +111,6 @@ def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, ma
     #print(alpha)
 
     return processed_weighted_residual_volatility
-
-
-def get_trailing_earning_to_price_ratio(date, market_cap_on_current_day, recent_report_type, annual_report_type):
-
-    net_profit_ttm = get_ttm_sum(rqdatac.financials.income_statement.net_profit, date, recent_report_type, annual_report_type)
-
-    earning_to_price = (net_profit_ttm/market_cap_on_current_day[net_profit_ttm.index]).T
-
-    processed_earning_to_price= winsorization_and_market_cap_weighed_standardization(earning_to_price, market_cap_on_current_day[earning_to_price.index])
-
-    return processed_earning_to_price
 
 
 # style:leverage

@@ -88,7 +88,7 @@ def style_factors_imputation(style_factors_exposure, market_cap_on_current_day, 
 
             else:
 
-                missing_data_stock_list = industry_style_factor_exposure[factor].index[industry_style_factor_exposure[factor].apply(np.isnan)]
+                missing_data_stock_list = industry_style_factor_exposure[factor].index[industry_style_factor_exposure[factor].astype(np.float).apply(np.isnan)]
 
                 y = industry_style_factor_exposure[[factor, 'market_cap']].dropna()[factor].values
 
