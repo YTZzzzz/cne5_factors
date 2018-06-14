@@ -1,8 +1,9 @@
+import numpy as np
+import pandas as pd
+from datetime import datetime
 
 import rqdatac
-
-rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
-
+rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
 
 def get_exponential_weight(half_life, length):
 
@@ -11,15 +12,6 @@ def get_exponential_weight(half_life, length):
     return np.cumprod(np.repeat(1/np.exp(np.log(2)/half_life), length))[::-1]
 
 
-
-def drop_stock(days,date,stock_list):
-
-    threshold_date = rqdatac.get_trading_dates(date - timedelta(days=days*2), date, country='cn')[-days]
-
-    stock_list = [stock for stock in stock_list if rqdatac.instruments(stock).listed_date < str(threshold_date)]
-
-
-    return stock_list
 
 
 def risk_free_rate(date):
@@ -37,7 +29,6 @@ def risk_free_rate(date):
 
 
 def get_market_portfolio_return(filtered_stock_daily_return, market_cap_on_current_day):
-
 
     market_cap_filtered_universe = market_cap_on_current_day[market_cap_on_current_day > 3000000000].index.tolist()
 
@@ -85,7 +76,7 @@ def get_daily_excess_return(stock_list, market_cap_on_current_day, start_date, e
 
 
 
-def recent_annual_report(date):
+def get_recent_financial_report(date):
 
     previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
 
@@ -109,10 +100,7 @@ def recent_annual_report(date):
     return recent_report_type.T[date], annual_report_type.T[date]
 
 
-date = '2018-02-06'
-
-
-def get_recent_five_annual_shares(date):
+def get_recent_five_annual_shares(stock_list, date):
 
     # 上市公司每年4月30日前必须公布当年报告。因此，取此前每年5月1日后第一个交易日的股票A股流通股本，作为当年的股本
 
@@ -126,7 +114,7 @@ def get_recent_five_annual_shares(date):
 
         next_trading_date = rqdatac.get_next_trading_date(report_date)
 
-        recent_five_annual_shares[report_date] = rqdatac.get_shares(market_cap_on_current_day.index.tolist(), start_date = next_trading_date.strftime('%Y-%m-%d'), end_date = next_trading_date.strftime('%Y-%m-%d'), fields='total_a').iloc[0]
+        recent_five_annual_shares[report_date] = rqdatac.get_shares(stock_list, start_date = next_trading_date.strftime('%Y-%m-%d'), end_date = next_trading_date.strftime('%Y-%m-%d'), fields='total_a').iloc[0]
 
     # 调整股本 dataframe 的列名，方便相除计算每股收入
 
@@ -135,31 +123,194 @@ def get_recent_five_annual_shares(date):
     return recent_five_annual_shares
 
 
+# 计算原生指标过去十二个月的滚动值（利润表、现金流量表滚动求和）
+
+def get_ttm_sum(financial_indicator, date, recent_report_type, annual_report_type):
+
+    previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
+
+    # 获得最近一期报告为年报的股票列表
+
+    annual_report_published_stocks = recent_report_type[recent_report_type == str(previous_year) + 'q4'].index.tolist()
+
+    # 把 index 和 list 转为集合类型，再计算补集
+
+    annual_report_not_published_stocks = list(set(recent_report_type.index) - set(annual_report_published_stocks))
+
+    # 计算最近一期财报为年报的股票的TTM
+
+    annual_published_recent_annual_values = [rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_([stock])), annual_report_type[stock], '1q').values[0] for stock in annual_report_published_stocks]
+
+    annual_published_ttm_values = pd.Series(index=annual_report_published_stocks, data=annual_published_recent_annual_values)
+
+    # 计算最近一期财报不是年报的股票的TTM
+
+    # 获取最近五期财报的财务数据
+
+    recent_five_reports = rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(annual_report_not_published_stocks)), recent_report_type[0], '5q')
+
+    # 对于最近一期报告不是年报的上市公司，其财务数据的 TTM 值为（最近一期年报财务数据 + 最近一期报告财务数据 - 去年同期报告财务数据）
+
+    recent_values = recent_five_reports.iloc[0]
+
+    recent_annual_values = recent_five_reports.loc[str(previous_year - 1) + 'q4']
+
+    previous_same_period_values = recent_five_reports.iloc[-1]
+
+    annual_not_published_ttm_values = recent_annual_values + recent_values - previous_same_period_values
+
+    ttm_series = pd.concat([annual_published_ttm_values, annual_not_published_ttm_values], axis=0)
+
+    return ttm_series
 
 
-    ### 获取因子计算共用的行情数据和财务数据
+# 调取最近一期财报数据
+
+def get_last_reported_values(financial_indicator, recent_report_type):
+
+    # 取出当天所有出现的财报类型
+
+    unique_recent_report_type = recent_report_type.unique().tolist()
+
+    last_reported_values = pd.Series()
+
+    # 循环每一类型的报告，再合并返回
+
+    for report_type in unique_recent_report_type:
+
+        stock_list = recent_report_type[recent_report_type == report_type].index.tolist()
+
+        last_reported_values = last_reported_values.append(rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(stock_list)), report_type).iloc[0])
+
+    return last_reported_values
+
+
+def recent_five_annual_values(financial_indicator, date, recent_report_type):
+
+    previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
+
+    # 获得最近一期报告为年报的股票列表
+
+    annual_report_published_stocks = recent_report_type[recent_report_type == str(previous_year) + 'q4'].index.tolist()
+
+    # 把 index 和 list 转为集合类型，再计算补集
+
+    annual_report_not_published_stocks = list(set(recent_report_type.index) - set(annual_report_published_stocks))
+
+    # 对于去年年报已经发布的上市公司，最近五期年报的列表
+
+    annual_report_published_list = [str(previous_year) + 'q4', str(previous_year - 1) + 'q4', str(previous_year - 2) + 'q4', str(previous_year - 3) + 'q4', str(previous_year - 4) + 'q4']
+
+    # 对于去年年报尚未经发布的上市公司，最近五期年报的列表
+
+    annual_report_not_published_list = [str(previous_year - 1) + 'q4', str(previous_year - 2) + 'q4', str(previous_year - 3) + 'q4', str(previous_year - 4) + 'q4', str(previous_year - 5) + 'q4']
+
+    # 获得最近一期报告为年报的股票列表
+
+    recent_five_reports = rqdatac.get_financials(rqdatac.query(financial_indicator), str(previous_year) + 'q4', '25q').T
+
+    annual_report_published_values = recent_five_reports[annual_report_published_list].loc[annual_report_published_stocks]
+
+    annual_report_not_published_values = recent_five_reports[annual_report_not_published_list].loc[annual_report_not_published_stocks]
+
+    # 重新命名 columns，方便合并 dataframes
+
+    annual_report_published_values.columns = ['first', 'second', 'third', 'fourth', 'fifth']
+
+    annual_report_not_published_values.columns = ['first', 'second', 'third', 'fourth', 'fifth']
+
+    recent_five_reports_values = pd.concat([annual_report_published_values, annual_report_not_published_values], axis = 0)
+
+    return recent_five_reports_values
+
+
 
 def get_financial_and_market_data(stock_list, latest_trading_date, trading_date_252_before):
 
     # 取出最近一期财务报告和年度报告字段，例如 '2016q3' 或  '2016q4'
 
-    recent_report_type, annual_report_type = recent_annual_report(latest_trading_date)
+    recent_report_type, annual_report_type = get_recent_financial_report(latest_trading_date.strftime('%Y-%m-%d'))
 
     market_cap_on_current_day = rqdatac.get_factor(id_or_symbols=stock_list, factor='a_share_market_val', start_date=latest_trading_date.strftime('%Y-%m-%d'), end_date=latest_trading_date.strftime('%Y-%m-%d'))
 
     stock_excess_return, market_portfolio_excess_return = get_daily_excess_return(stock_list, market_cap_on_current_day, trading_date_252_before.strftime('%Y-%m-%d'), latest_trading_date.strftime('%Y-%m-%d'))
 
-    recent_five_annual_shares = get_recent_five_annual_shares(date)
+    recent_five_annual_shares = get_recent_five_annual_shares(stock_list, latest_trading_date.strftime('%Y-%m-%d'))
 
     # 当公司非流动性负债数据缺失时，则认为该公司没有非流动性负债，把缺失值替换为0
 
-    last_reported_non_current_liabilities = get_last_reported_values(rqdatac.financials.balance_sheet.non_current_liabilities, date, recent_report_type, annual_report_type).fillna(value=0)
+    last_reported_non_current_liabilities = get_last_reported_values(rqdatac.financials.balance_sheet.non_current_liabilities, recent_report_type).fillna(value=0)
 
     # 当公司优先股数据缺失时，则认为该公司没有优先股，把缺失值替换为0
 
-    last_reported_preferred_stock = get_last_reported_values(rqdatac.financials.balance_sheet.equity_preferred_stock, date, recent_report_type, annual_report_type).fillna(value=0)
+    last_reported_preferred_stock = get_last_reported_values(rqdatac.financials.balance_sheet.equity_prefer_stock, recent_report_type).fillna(value=0)
 
     return recent_report_type, annual_report_type, market_cap_on_current_day, stock_excess_return, market_portfolio_excess_return, recent_five_annual_shares, last_reported_non_current_liabilities, last_reported_preferred_stock
 
 
 
+
+def get_shenwan_industry_exposure(stock_list, date):
+
+    industry_classification = rqdatac.shenwan_instrument_industry(stock_list, date)
+
+    industry_classification_missing_stocks = list(set(stock_list) - set(industry_classification.index.tolist()))
+
+    # 当传入股票过多时，对于缺失行业标记的股票，RQD 目前不会向前搜索，因此需要循环单个传入查找这些股票的行业标记
+
+    if len(industry_classification_missing_stocks) != 0:
+
+        for stock in industry_classification_missing_stocks:
+
+            missing_industry_classification = rqdatac.shenwan_instrument_industry(stock, date)
+
+            if missing_industry_classification != None:
+
+                industry_classification = industry_classification.append(pd.Series([missing_industry_classification[0], missing_industry_classification[1]], index=['index_code','index_name'], name = stock))
+
+    shenwan_industry_name = ['农林牧渔', '采掘', '化工', '钢铁', '有色金属', '电子', '家用电器', '食品饮料', '纺织服装', '轻工制造',\
+                             '医药生物', '公用事业', '交通运输', '房地产', '商业贸易', '休闲服务','综合', '建筑材料',  '建筑装饰', '电气设备',\
+                             '国防军工', '计算机', '传媒', '通信', '银行', '非银金融', '汽车', '机械设备']
+
+
+    # 在 stock_list 中仅有一个股票的情况下，返回格式为 tuple
+
+    if isinstance(industry_classification, tuple):
+
+        industry_name = industry_classification[1]
+
+        industry_exposure_df = pd.DataFrame(0, index = shenwan_industry_name, columns = stock_list).T
+
+        industry_exposure_df[industry_name] = 1
+
+    else:
+
+        industry_exposure_df = pd.DataFrame(0, index = industry_classification.index, columns = shenwan_industry_name)
+
+        for industry in shenwan_industry_name:
+
+            industry_exposure_df.loc[industry_classification[industry_classification['index_name'] == industry].index, industry] = 1
+
+    return industry_exposure_df
+
+
+
+def get_shenwan_industry_label(stock_list, date):
+
+    industry_classification = rqdatac.shenwan_instrument_industry(stock_list, date)
+
+    industry_classification_missing_stocks = list(set(stock_list) - set(industry_classification.index.tolist()))
+
+    # 当传入股票过多时，对于缺失行业标记的股票，RQD 目前不会向前搜索，因此需要循环单个传入查找这些股票的行业标记
+
+    if len(industry_classification_missing_stocks) != 0:
+
+        for stock in industry_classification_missing_stocks:
+
+            missing_industry_classification = rqdatac.shenwan_instrument_industry(stock, date)
+
+            if missing_industry_classification != None:
+
+                industry_classification = industry_classification.append(pd.Series([missing_industry_classification[0], missing_industry_classification[1]], index=['index_code','index_name'], name = stock))
+
+    return industry_classification['index_name']

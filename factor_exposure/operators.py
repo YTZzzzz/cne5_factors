@@ -1,20 +1,10 @@
-
 import scipy.optimize as sc_opt
 import numpy as np
 import pandas as pd
 
+sys.path.append("/Users/jjj728/git/cne5_factors/factor_exposure/")
 
-# 剔除垃圾股
-def drop_st_stock(stock_list,date):
-
-
-    st_stock_list = rqdatac.is_st_stock(stock_list,start_date=date,end_date=date)
-
-    stock_list_drop_st = [stock for stock in stock_list if st_stock_list.T.loc[stock].values[0] == False]
-
-    return stock_list_drop_st
-
-
+from intermediate_variables import *
 
 
 def winsorization_and_market_cap_weighed_standardization(factor_exposure, market_cap_on_current_day):
@@ -54,102 +44,65 @@ def orthogonalize(target_variable, reference_variable, regression_weight):
 
 
 
-# 计算原生指标过去十二个月的滚动值（利润表、现金流量表滚动求和）
+def atomic_descriptors_imputation_and_combination(atomic_descriptors_df, atom_descriptors_weight):
 
-def get_ttm_sum(financial_indicator, date, recent_report_type, annual_report_type):
+    missing_desriptors_position_label = atomic_descriptors_df.notnull() + 0
 
-    previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
+    # 根据细分因子缺失位置，计算每一个股票的暴露度的归一化权重
 
-    # 获得最近一期报告为年报的股票列表
+    renormalized_weight = missing_desriptors_position_label.dot(atom_descriptors_weight)
 
-    annual_report_published_stocks = recent_report_type[recent_report_type == str(previous_year) + 'q4'].index.tolist()
+    style_factor = atomic_descriptors_df.replace(np.nan, 0).dot(atom_descriptors_weight).divide(renormalized_weight)
 
-    # 把 index 和 list 转为集合类型，再计算补集
-
-    annual_report_not_published_stocks = list(set(recent_report_type.index) - set(annual_report_published_stocks))
-
-    # 计算最近一期财报为年报的股票的TTM
-
-    annual_published_recent_annual_values = [rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_([stock])), annual_report_type[stock], '1q').values[0] for stock in annual_report_published_stocks]
-
-    annual_published_ttm_values = pd.Series(index=annual_report_published_stocks, data=annual_published_recent_annual_values)
-
-    # 计算最近一期财报不是年报的股票的TTM
-
-    # 获取最近五期财报的财务数据
-
-    recent_five_reports = rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(annual_report_not_published_stocks)), recent_report_type[0], '5q')
-
-    # 对于最近一期报告不是年报的上市公司，其财务数据的 TTM 值为（最近一期年报财务数据 + 最近一期报告财务数据 - 去年同期报告财务数据）
-
-    recent_values = recent_five_reports.iloc[0]
-
-    recent_annual_values = recent_five_reports.loc[str(previous_year - 1) + 'q4']
-
-    previous_same_period_values = recent_five_reports.iloc[-1]
-
-    annual_not_published_ttm_values = recent_annual_values + recent_values - previous_same_period_values
-
-    ttm_series = pd.concat([annual_published_ttm_values, annual_not_published_ttm_values], axis=0)
-
-    return ttm_series
+    return style_factor
 
 
-# 调取最近一期财报数据
+def style_factors_imputation(style_factors_exposure, market_cap_on_current_day, date):
 
-def get_last_reported_values(financial_indicator, recent_report_type):
+    import statsmodels.api as st
 
-    # 取出当天所有出现的财报类型
+    imputed_style_factors_exposure = style_factors_exposure.copy()
 
-    unique_recent_report_type = recent_report_type.unique().tolist()
+    industry_label = get_shenwan_industry_label(style_factors_exposure.index.tolist(), date)
 
-    last_reported_values = pd.Series()
+    style_factors_exposure['market_cap'] = market_cap_on_current_day
 
-    # 循环每一类型的报告，再合并返回
+    style_factors_exposure['industry_label'] = industry_label
 
-    for report_type in unique_recent_report_type:
+    # 风格因子暴露度缺失值处理逻辑，是寻找同行业中市值类似的股票，然后以该股票的因子暴露度取值作为缺失股票的因子暴露度取值
 
-        stock_list = recent_report_type[recent_report_type == report_type].index.tolist()
+    # 实现方法为在同行业的股票中，用没有缺失的股票因子暴露度对股票市值做回归（考虑截距项），得到相应的回归系数，再用出现因子暴露度缺失值的股票的市值乘以回归系数，得到股票因子暴露度缺失值的估计值。
 
-        last_reported_values = last_reported_values.append(rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(stock_list)), report_type).iloc[0])
+    for industry in industry_label.unique():
 
-    return last_reported_values
+        industry_style_factor_exposure = style_factors_exposure[style_factors_exposure['industry_label'] == industry]
+
+        for factor in imputed_style_factors_exposure.columns:
+
+            # 若某一行业中，股票对于特定因子的暴露度没有缺失，则跳过缺失值填补流程
+
+            if (industry_style_factor_exposure[factor].isnull().any() == False):
+
+                continue
+
+            else:
+
+                missing_data_stock_list = industry_style_factor_exposure[factor].index[industry_style_factor_exposure[factor].apply(np.isnan)]
+
+                y = industry_style_factor_exposure[[factor, 'market_cap']].dropna()[factor].values
+
+                x = np.stack([industry_style_factor_exposure[[factor, 'market_cap']].dropna()['market_cap'].values, np.ones(len(y))]).T
+
+                st_result = st.OLS(y, x).fit()
+
+                exogenous_variables = pd.concat([industry_style_factor_exposure['market_cap'][missing_data_stock_list], pd.Series(data = 1, index = missing_data_stock_list)], axis = 1)
+
+                imputed_style_factors_exposure.loc[missing_data_stock_list, factor] = exogenous_variables.dot(st_result.params)
+
+    return imputed_style_factors_exposure
 
 
-def recent_five_annual_values(financial_indicator, date, recent_report_type):
 
-    previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
 
-    # 获得最近一期报告为年报的股票列表
 
-    annual_report_published_stocks = recent_report_type[recent_report_type == str(previous_year) + 'q4'].index.tolist()
 
-    # 把 index 和 list 转为集合类型，再计算补集
-
-    annual_report_not_published_stocks = list(set(recent_report_type.index) - set(annual_report_published_stocks))
-
-    # 对于去年年报已经发布的上市公司，最近五期年报的列表
-
-    annual_report_published_list = [str(previous_year) + 'q4', str(previous_year - 1) + 'q4', str(previous_year - 2) + 'q4', str(previous_year - 3) + 'q4', str(previous_year - 4) + 'q4']
-
-    # 对于去年年报尚未经发布的上市公司，最近五期年报的列表
-
-    annual_report_not_published_list = [str(previous_year - 1) + 'q4', str(previous_year - 2) + 'q4', str(previous_year - 3) + 'q4', str(previous_year - 4) + 'q4', str(previous_year - 5) + 'q4']
-
-    # 获得最近一期报告为年报的股票列表
-
-    recent_five_reports = rqdatac.get_financials(rqdatac.query(financial_indicator), str(previous_year) + 'q4', '25q').T
-
-    annual_report_published_values = recent_five_reports[annual_report_published_list].loc[annual_report_published_stocks]
-
-    annual_report_not_published_values = recent_five_reports[annual_report_not_published_list].loc[annual_report_not_published_stocks]
-
-    # 重新命名 columns，方便合并 dataframes
-
-    annual_report_published_values.columns = ['first', 'second', 'third', 'fourth', 'fifth']
-
-    annual_report_not_published_values.columns = ['first', 'second', 'third', 'fourth', 'fifth']
-
-    recent_five_reports_values = pd.concat([annual_report_published_values, annual_report_not_published_values], axis = 0)
-
-    return recent_five_reports_values
