@@ -49,11 +49,12 @@ def get_barra_style_exposure(date):
 
 # 比对
 
-date = '2018-02-06'
+date = '2017-01-06'
+
 latest_trading_date = rqdatac.get_previous_trading_date(datetime.strptime(date, "%Y-%m-%d") + timedelta(days=1))
 stock_list = rqdatac.all_instruments(type = 'CS', date = latest_trading_date)['order_book_id'].values.tolist()
 
-atomic_descriptors_exposure, style_factors_exposure, imputed_style_factors_exposure = get_style_factors(date)
+atomic_descriptors_exposure, style_factors_exposure, imputed_style_factors_exposure,stock_beta = get_style_factors(date)
 
 barra_style_factor_exposure = get_barra_style_exposure(date)
 
@@ -81,7 +82,8 @@ imputed_non_linear_size_correlation = pd.concat([imputed_style_factors_exposure[
 
 
 
-liquidity_correlation = pd.concat([atomic_descriptors_exposure['historical_sigma'], barra_style_factor_exposure['CNE5S_RESVOL']], axis =1).dropna().corr()
+
+liquidity_correlation = pd.concat([atomic_descriptors_exposure['earnings_growth'].astype(np.float), barra_style_factor_exposure['CNE5S_GROWTH']], axis =1).dropna().corr()
 
 
 

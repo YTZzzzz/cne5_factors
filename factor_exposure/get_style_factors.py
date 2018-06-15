@@ -84,11 +84,11 @@ def get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_re
 
     stock_list = net_profit_ttm.index.tolist()
 
-    share_price = rqdatac.get_price(stock_list, start_date=latest_trading_date, end_date=latest_trading_date, fields='close', adjust_type='none').T
+    stock_price = rqdatac.get_price(stock_list, start_date=latest_trading_date, end_date=latest_trading_date, fields='close', adjust_type='none').T
 
     shares = rqdatac.get_shares(stock_list,start_date=latest_trading_date,end_date=latest_trading_date,fields='total').T
 
-    earning_to_price = net_profit_ttm / (share_price * shares)[str(latest_trading_date)]
+    earning_to_price = net_profit_ttm / (stock_price * shares)[str(latest_trading_date)]
 
     processed_earnings_yield= winsorization_and_market_cap_weighed_standardization(earning_to_price, market_cap_on_current_day[earning_to_price.index])
 
@@ -173,8 +173,6 @@ def get_liquidity(stock_list, date, market_cap_on_current_day):
 
     trading_date_252_before = rqdatac.get_trading_dates(date - timedelta(days=500), date, country='cn')[-252]
 
-    #stock_without_suspended_stock = drop_suspended_stock(stock_list,date)
-
     trading_volume = rqdatac.get_price(stock_list, trading_date_252_before, date, frequency='1d', fields='volume')
 
     outstanding_shares = rqdatac.get_shares(stock_list, trading_date_252_before, date, fields='total_a')
@@ -215,7 +213,7 @@ def get_non_linear_size(size_exposure, market_cap_on_current_day):
     return processed_orthogonalized_cubed_size
 
 
-date = '2018-02-06'
+#date = '2017-01-06'
 
 
 def get_style_factors(date):
@@ -232,8 +230,16 @@ def get_style_factors(date):
     stock_excess_return, market_portfolio_excess_return, recent_five_annual_shares,\
     last_reported_non_current_liabilities, last_reported_preferred_stock = get_financial_and_market_data(stock_list, latest_trading_date, trading_date_252_before)
 
+    # 获取每只股票beta
+    benchmark_list = ['000016.XSHG','000300.XSHG','000905.XSHG','000906.XSHG','000985.XSHG']
 
-    ### 风格因子计算
+    stock_beta = pd.DataFrame()
+
+    for benchmark in benchmark_list:
+
+        stock_beta[benchmark] = get_stock_beta(stock_list,benchmark,date)
+
+    # 风格因子计算
 
     size = get_size(market_cap_on_current_day)
 
@@ -265,7 +271,6 @@ def get_style_factors(date):
     atomic_descriptors_exposure.columns = ['daily_standard_deviation', 'cumulative_range', 'historical_sigma',  'one_month_share_turnover', 'three_months_share_turnover', 'twelve_months_share_turnover',\
                                              'market_leverage', 'debt_to_assets', 'book_leverage', 'sales_growth', 'earnings_growth']
 
-
     # 提取财务数据的时候，会提取当前全市场股票的数据，因此 dataframe 中可能包含计算日期未上市的股票，需要对 style_factors_exposure 取子集
 
     atomic_descriptors_exposure = atomic_descriptors_exposure.loc[stock_list]
@@ -278,4 +283,4 @@ def get_style_factors(date):
 
     # 返回缺失值填充前后风格因子暴露度，方便比对相关性
 
-    return atomic_descriptors_exposure, style_factors_exposure, imputed_style_factors_exposure
+    return atomic_descriptors_exposure, style_factors_exposure, imputed_style_factors_exposure,stock_beta

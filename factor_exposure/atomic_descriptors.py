@@ -47,7 +47,7 @@ def get_cumulative_range(stock_list, date, market_cap_on_current_day):
 
     # 把复利无风险日收益率转为日收益率
 
-    compounded_risk_free_return = rqdatac.get_yield_curve(start_date=trading_date_253_before, end_date=date, tenor='0S')
+    compounded_risk_free_return = rqdatac.get_yield_curve(start_date=trading_date_253_before, end_date=date, tenor='3M')
 
     risk_free_return = (((1 + compounded_risk_free_return) ** (1 / 365)) - 1).loc[daily_return.index]
 
@@ -202,7 +202,4 @@ def get_earnings_growth(date, market_cap_on_current_day, recent_five_annual_shar
     regression_coefficient = pd.Series(data = covariance_of_xy/variance_of_x, index = earnings_per_share.index)
 
     return regression_coefficient/abs(earnings_per_share).T.mean()
-
-
-
 

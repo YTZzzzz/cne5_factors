@@ -133,6 +133,8 @@ def get_ttm_sum(financial_indicator, date, recent_report_type, annual_report_typ
 
     previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
 
+    month_now = datetime.strptime(date, '%Y-%m-%d').month
+
     # 获得最近一期报告为年报的股票列表
 
     annual_report_published_stocks = recent_report_type[recent_report_type == str(previous_year) + 'q4'].index.tolist()
@@ -157,7 +159,7 @@ def get_ttm_sum(financial_indicator, date, recent_report_type, annual_report_typ
 
     recent_values = recent_five_reports.iloc[0]
 
-    recent_annual_values = recent_five_reports.loc[str(previous_year - 1) + 'q4']
+    recent_annual_values = [recent_five_reports.loc[str(previous_year) + 'q4'] if month_now >= 5 else recent_five_reports.loc[str(previous_year - 1) + 'q4']][0]
 
     previous_same_period_values = recent_five_reports.iloc[-1]
 
@@ -184,7 +186,11 @@ def get_last_reported_values(financial_indicator, recent_report_type):
 
         stock_list = recent_report_type[recent_report_type == report_type].index.tolist()
 
-        last_reported_values = last_reported_values.append(rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(stock_list)), report_type).iloc[0])
+        if len(stock_list) == 1:
+            last_reported_values = last_reported_values.append(rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(stock_list)), report_type))
+
+        else:
+            last_reported_values = last_reported_values.append(rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(stock_list)), report_type).iloc[0])
 
     return last_reported_values
 
