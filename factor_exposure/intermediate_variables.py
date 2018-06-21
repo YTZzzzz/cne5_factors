@@ -49,9 +49,9 @@ def get_daily_excess_return(stock_list, market_cap_on_current_day, start_date, e
 
     stock_daily_return = rqdatac.get_price(stock_list, rqdatac.get_previous_trading_date(start_date), end_date, frequency='1d', fields='close').fillna(method='ffill').pct_change()[1:]
 
-    # 剔除收益率数据少于66个的股票
+    # 剔除收益率数据存在空值的股票
 
-    inds = stock_daily_return.isnull().sum()[stock_daily_return.isnull().sum() > (len(stock_daily_return) - 66)].index
+    inds = stock_daily_return.isnull().sum()[stock_daily_return.isnull().sum() > 0].index
 
     filtered_stock_daily_return = stock_daily_return.drop(inds, axis=1)
 
@@ -187,9 +187,11 @@ def get_last_reported_values(financial_indicator, recent_report_type):
         stock_list = recent_report_type[recent_report_type == report_type].index.tolist()
 
         if len(stock_list) == 1:
+
             last_reported_values = last_reported_values.append(rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(stock_list)), report_type))
 
         else:
+
             last_reported_values = last_reported_values.append(rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(stock_list)), report_type).iloc[0])
 
     return last_reported_values
@@ -232,7 +234,6 @@ def recent_five_annual_values(financial_indicator, date, recent_report_type):
     recent_five_reports_values = pd.concat([annual_report_published_values, annual_report_not_published_values], axis = 0)
 
     return recent_five_reports_values
-
 
 
 def get_financial_and_market_data(stock_list, latest_trading_date, trading_date_252_before):

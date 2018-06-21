@@ -14,7 +14,6 @@ from sklearn import linear_model
 
 import rqdatac
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
-#rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
 
 
 def get_market_portfolio_beta(stock_excess_return, market_portfolio_excess_return, market_cap_on_current_day):
@@ -52,9 +51,9 @@ def get_momentum(stock_list, date, market_cap_on_current_day):
 
     daily_return = rqdatac.get_price(stock_list, trading_date_505_before, trading_date_21_before, frequency='1d', fields='close').fillna(method='ffill').pct_change()[1:]
 
-    # 剔除收益率数据少于66个的股票
+    # 剔除收益率数据存在空值的股票
 
-    inds = daily_return.isnull().sum()[daily_return.isnull().sum() > (len(daily_return) - 66)].index
+    inds = daily_return.isnull().sum()[daily_return.isnull().sum() > 0].index
 
     daily_return = daily_return.drop(daily_return[inds], axis=1)
 
@@ -66,7 +65,7 @@ def get_momentum(stock_list, date, market_cap_on_current_day):
 
     relative_strength = np.log(1 + daily_return).T.subtract(np.log(1 + risk_free_return.iloc[:, 0])).dot(exp_weight)
 
-    processed_relative_strength =  winsorization_and_market_cap_weighed_standardization(relative_strength, market_cap_on_current_day[relative_strength.index])
+    processed_relative_strength = winsorization_and_market_cap_weighed_standardization(relative_strength, market_cap_on_current_day[relative_strength.index])
 
     return processed_relative_strength
 
@@ -80,19 +79,13 @@ def get_size(market_cap_on_current_day):
 
 def get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type, annual_report_type):
 
-    net_profit_ttm = get_ttm_sum(rqdatac.financials.income_statement.profit_before_tax, str(latest_trading_date), recent_report_type, annual_report_type)
+    earnings_to_price_ratio = get_earnings_to_price_ratio(latest_trading_date,recent_report_type,annual_report_type,market_cap_on_current_day)
 
-    stock_list = net_profit_ttm.index.tolist()
+    cash_earnings_to_price_ratio = get_cash_earnings_to_price_ratio(latest_trading_date,recent_report_type,annual_report_type,market_cap_on_current_day)
 
-    stock_price = rqdatac.get_price(stock_list, start_date=latest_trading_date, end_date=latest_trading_date, fields='close', adjust_type='none').T
+    earnings_yield = earnings_to_price_ratio
 
-    shares = rqdatac.get_shares(stock_list,start_date=latest_trading_date,end_date=latest_trading_date,fields='total').T
-
-    earning_to_price = net_profit_ttm / (stock_price * shares)[str(latest_trading_date)]
-
-    processed_earnings_yield= winsorization_and_market_cap_weighed_standardization(earning_to_price, market_cap_on_current_day[earning_to_price.index])
-
-    return processed_earnings_yield
+    return earnings_to_price_ratio,cash_earnings_to_price_ratio,earnings_yield
 
 
 def get_residual_volatility(stock_list, latest_trading_date, stock_excess_return,market_portfolio_excess_return, market_cap_on_current_day,market_portfolio_beta_exposure, market_portfolio_beta):
@@ -111,7 +104,9 @@ def get_residual_volatility(stock_list, latest_trading_date, stock_excess_return
 
     residual_volatility = atomic_descriptors_imputation_and_combination(atomic_descriptors_df, atom_descriptors_weight)
 
-    processed_residual_volatility_exposure = winsorization_and_market_cap_weighed_standardization(residual_volatility, market_cap_on_current_day)
+    orthogonalized_weighted_residual_volatility = orthogonalize(target_variable = residual_volatility, reference_variable = market_portfolio_beta_exposure, regression_weight = np.sqrt(market_cap_on_current_day)/(np.sqrt(market_cap_on_current_day).sum()))
+
+    processed_residual_volatility_exposure = winsorization_and_market_cap_weighed_standardization(orthogonalized_weighted_residual_volatility, market_cap_on_current_day)
 
     return daily_standard_deviation_exposure, cumulative_range_exposure, historical_sigma_exposure, processed_residual_volatility_exposure
 
@@ -175,9 +170,13 @@ def get_liquidity(stock_list, date, market_cap_on_current_day):
 
     trading_volume = rqdatac.get_price(stock_list, trading_date_252_before, date, frequency='1d', fields='volume')
 
+    inds = trading_volume.loc[date][trading_volume.loc[date].values == 0].index.tolist()
+
+    stock_list = list(set(stock_list) - set(inds))
+
     outstanding_shares = rqdatac.get_shares(stock_list, trading_date_252_before, date, fields='total_a')
 
-    daily_turnover_rate = trading_volume.divide(outstanding_shares)
+    daily_turnover_rate = trading_volume[stock_list].divide(outstanding_shares)
 
     # 对于对应时期内换手率为 0 的股票，其细分因子暴露度也设为0
 
@@ -213,7 +212,7 @@ def get_non_linear_size(size_exposure, market_cap_on_current_day):
     return processed_orthogonalized_cubed_size
 
 
-#date = '2017-01-06'
+date = '2017-01-06'
 
 
 def get_style_factors(date):
@@ -253,7 +252,7 @@ def get_style_factors(date):
 
     one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover, liquidity = get_liquidity(stock_list, latest_trading_date, market_cap_on_current_day)
 
-    earnings_yield = get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type, annual_report_type)
+    earnings_to_price_ratio, cash_earnings_to_price_ratio, earnings_yield = get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type, annual_report_type)
 
     book_to_price = get_book_to_price_ratio(market_cap_on_current_day, last_reported_preferred_stock, recent_report_type)
 
@@ -265,11 +264,11 @@ def get_style_factors(date):
 
     style_factors_exposure.columns = ['beta', 'momentum', 'size', 'earnings_yield', 'residual_volatility', 'growth', 'book_to_price', 'leverage', 'liquidity', 'non_linear_size']
 
-    atomic_descriptors_exposure = pd.concat([daily_standard_deviation, cumulative_range, historical_sigma,  one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover,\
-                                             market_leverage, debt_to_assets, book_leverage, sales_growth, earnings_growth], axis = 1)
+    atomic_descriptors_exposure = pd.concat([daily_standard_deviation, cumulative_range, historical_sigma,  one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover, \
+                                             earnings_to_price_ratio, cash_earnings_to_price_ratio,market_leverage, debt_to_assets, book_leverage, sales_growth, earnings_growth], axis = 1)
 
     atomic_descriptors_exposure.columns = ['daily_standard_deviation', 'cumulative_range', 'historical_sigma',  'one_month_share_turnover', 'three_months_share_turnover', 'twelve_months_share_turnover',\
-                                             'market_leverage', 'debt_to_assets', 'book_leverage', 'sales_growth', 'earnings_growth']
+                                             'earnings_to_price_ratio', 'cash_earnings_to_price_ratio','market_leverage', 'debt_to_assets', 'book_leverage', 'sales_growth', 'earnings_growth']
 
     # 提取财务数据的时候，会提取当前全市场股票的数据，因此 dataframe 中可能包含计算日期未上市的股票，需要对 style_factors_exposure 取子集
 

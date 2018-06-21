@@ -13,7 +13,6 @@ from sklearn import linear_model
 
 import rqdatac
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
-#rqdatac.init('ricequant', '8ricequant8',('q-tools.ricequant.com', 16010))
 
 
 def get_daily_standard_deviation(stock_excess_return, market_cap_on_current_day):
@@ -39,9 +38,9 @@ def get_cumulative_range(stock_list, date, market_cap_on_current_day):
 
     daily_return = rqdatac.get_price(stock_list, trading_date_253_before, date, frequency='1d', fields='close').fillna(method='ffill').pct_change()[1:]
 
-    # 剔除收益率数据少于66个的股票
+    # 剔除收益率数据存在空值的股票
 
-    inds = daily_return.isnull().sum()[daily_return.isnull().sum() > (len(daily_return) - 66)].index
+    inds = stock_daily_return.isnull().sum()[stock_daily_return.isnull().sum() > 0].index
 
     daily_return = daily_return.drop(daily_return[inds], axis=1)
 
@@ -111,6 +110,40 @@ def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, ma
     #print(alpha)
 
     return processed_weighted_residual_volatility
+
+
+def get_earnings_to_price_ratio(latest_trading_date,recent_report_type,annual_report_type,market_cap_on_current_day):
+
+    net_profit_ttm = get_ttm_sum(rqdatac.financials.income_statement.profit_before_tax, str(latest_trading_date), recent_report_type, annual_report_type)
+
+    stock_list = net_profit_ttm.index.tolist()
+
+    stock_price = rqdatac.get_price(stock_list, start_date=latest_trading_date, end_date=latest_trading_date, fields='close', adjust_type='none').T
+
+    shares = rqdatac.get_shares(stock_list,start_date=latest_trading_date,end_date=latest_trading_date,fields='total').T
+
+    earning_to_price = net_profit_ttm / (stock_price * shares)[str(latest_trading_date)]
+
+    processed_earning_to_price= winsorization_and_market_cap_weighed_standardization(earning_to_price, market_cap_on_current_day[earning_to_price.index])
+
+    return processed_earning_to_price
+
+
+def get_cash_earnings_to_price_ratio(latest_trading_date,recent_report_type,annual_report_type,market_cap_on_current_day):
+
+    cash_ttm = get_ttm_sum(rqdatac.financials.cash_flow_statement.cash_flow_from_operating_activities, str(latest_trading_date), recent_report_type, annual_report_type)
+
+    stock_list = cash_ttm.index.tolist()
+
+    stock_price = rqdatac.get_price(stock_list, start_date=latest_trading_date, end_date=latest_trading_date, fields='close', adjust_type='none').T
+
+    shares = rqdatac.get_shares(stock_list,start_date=latest_trading_date,end_date=latest_trading_date,fields='total').T
+
+    cash_earning_to_price = cash_ttm / (stock_price * shares)[str(latest_trading_date)]
+
+    processed_cash_earning_to_price= winsorization_and_market_cap_weighed_standardization(cash_earning_to_price, market_cap_on_current_day[cash_earning_to_price.index])
+
+    return processed_cash_earning_to_price
 
 
 # style:leverage
