@@ -3,10 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="d1e08ce0-9409-403a-8bc4-601026feb35f" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factor_exposure/data_comparison.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/data_comparison.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factor_exposure/get_style_factors.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/get_style_factors.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factor_exposure/intermediate_variables.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/intermediate_variables.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factor_exposure/operators.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/operators.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factor_exposure/stock_beta_calculation.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/stock_beta_calculation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factor_exposure/stock_beta_calculation.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_exposure/get_stock_beta.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -20,30 +21,32 @@
       <file leaf-file-name="intermediate_variables.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_exposure/intermediate_variables.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="11" selection-end-line="280" />
+            <state relative-caret-position="4290">
+              <caret line="286" column="48" selection-start-line="286" selection-start-column="48" selection-end-line="286" selection-end-column="48" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <element signature="e#441#885#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="get_style_factors.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="get_style_factors.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_exposure/get_style_factors.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="413">
-              <caret line="243" column="137" selection-start-line="243" selection-start-column="137" selection-end-line="243" selection-end-column="137" />
+            <state relative-caret-position="422">
+              <caret line="317" column="81" selection-start-line="317" selection-start-column="81" selection-end-line="317" selection-end-column="81" />
+              <folding>
+                <element signature="e#10901#15980#0" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="stock_beta_calculation.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/factor_exposure/stock_beta_calculation.py">
+      <file leaf-file-name="get_stock_beta.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/factor_exposure/get_stock_beta.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="10" lean-forward="true" selection-start-line="10" selection-end-line="10" />
+            <state relative-caret-position="482">
+              <caret line="41" selection-start-line="41" selection-end-line="41" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -54,8 +57,8 @@
       <file leaf-file-name="operators.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_exposure/operators.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1575">
-              <caret line="105" lean-forward="true" selection-start-line="105" selection-end-line="105" />
+            <state relative-caret-position="300">
+              <caret line="187" lean-forward="true" selection-start-line="187" selection-end-line="187" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -66,17 +69,17 @@
       <file leaf-file-name="atomic_descriptors.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_exposure/atomic_descriptors.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="450">
-              <caret line="30" lean-forward="true" selection-start-line="30" selection-end-line="30" />
+            <state relative-caret-position="1939">
+              <caret line="217" selection-start-line="217" selection-end-line="217" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_comparison.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="data_comparison.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/factor_exposure/data_comparison.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="257">
-              <caret line="74" column="25" selection-start-line="74" selection-end-line="74" selection-end-column="26" />
+            <state relative-caret-position="277">
+              <caret line="68" lean-forward="true" selection-start-line="68" selection-end-line="68" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -102,18 +105,19 @@
         <option value="$PROJECT_DIR$/factor_exposure/market_based_style_factor_exposure.py" />
         <option value="$PROJECT_DIR$/factor_exposure/fundamental_based_style_factor_exposure.py" />
         <option value="$PROJECT_DIR$/factor_exposure/market_based_style_factor_exposure_backup.py" />
-        <option value="$PROJECT_DIR$/factor_exposure/intermediate_variables.py" />
-        <option value="$PROJECT_DIR$/factor_exposure/data_comparison.py" />
         <option value="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" />
-        <option value="$PROJECT_DIR$/factor_exposure/operators.py" />
         <option value="$PROJECT_DIR$/factor_exposure/stock_beta_calculation.py" />
+        <option value="$PROJECT_DIR$/factor_exposure/data_comparison.py" />
+        <option value="$PROJECT_DIR$/factor_exposure/operators.py" />
+        <option value="$PROJECT_DIR$/factor_exposure/intermediate_variables.py" />
+        <option value="$PROJECT_DIR$/factor_exposure/get_stock_beta.py" />
         <option value="$PROJECT_DIR$/factor_exposure/get_style_factors.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" fullScreen="true">
-    <option name="width" value="1440" />
-    <option name="height" value="900" />
+    <option name="width" value="1920" />
+    <option name="height" value="1080" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -186,14 +190,14 @@
     <frame x="0" y="0" width="1920" height="1080" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.21192758" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.15761448" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32935324" />
       <window_info anchor="right" id="R Packages" order="4" />
       <window_info anchor="right" id="R Graphics" order="3" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5005325" side_tool="true" weight="0.35024875" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32969698" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="8" sideWeight="0.49946752" visible="true" weight="0.3482587" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="8" sideWeight="0.49946752" visible="true" weight="0.42587066" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.32935324" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
@@ -206,6 +210,27 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32935324" />
     </layout>
+    <layout-to-restore>
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.15761448" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="right" id="R Graphics" order="3" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32935324" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32935324" />
+      <window_info anchor="right" id="R Packages" order="4" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Terminal" order="10" weight="0.32935324" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5005325" side_tool="true" weight="0.35024875" />
+      <window_info anchor="bottom" id="Version Control" order="7" weight="0.32969698" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="8" sideWeight="0.49946752" visible="true" weight="0.42587066" />
+    </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
@@ -239,7 +264,6 @@
           <caret line="16" column="77" selection-start-line="16" selection-start-column="77" selection-end-line="16" selection-end-column="77" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
-            <element signature="e#441#885#0" />
           </folding>
         </state>
       </provider>
@@ -274,7 +298,6 @@
           <caret line="144" column="19" lean-forward="true" selection-start-line="144" selection-start-column="19" selection-end-line="144" selection-end-column="19" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
-            <element signature="e#441#885#0" />
           </folding>
         </state>
       </provider>
@@ -556,46 +579,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/intermediate_variables.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="11" selection-end-line="280" />
+        <state relative-caret-position="4290">
+          <caret line="286" column="48" selection-start-line="286" selection-start-column="48" selection-end-line="286" selection-end-column="48" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
-            <element signature="e#441#885#0" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/factor_exposure/data_comparison.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="74" column="25" selection-start-line="74" selection-end-line="74" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/factor_exposure/atomic_descriptors.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="30" lean-forward="true" selection-start-line="30" selection-end-line="30" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/operators.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1575">
-          <caret line="105" lean-forward="true" selection-start-line="105" selection-end-line="105" />
+        <state relative-caret-position="300">
+          <caret line="187" lean-forward="true" selection-start-line="187" selection-end-line="187" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/factor_exposure/stock_beta_calculation.py">
+    <entry file="file://$PROJECT_DIR$/factor_exposure/get_stock_beta.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" lean-forward="true" selection-start-line="10" selection-end-line="10" />
+        <state relative-caret-position="482">
+          <caret line="41" selection-start-line="41" selection-end-line="41" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -604,8 +609,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/get_style_factors.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="413">
-          <caret line="243" column="137" selection-start-line="243" selection-start-column="137" selection-end-line="243" selection-end-column="137" />
+        <state relative-caret-position="422">
+          <caret line="317" column="81" selection-start-line="317" selection-start-column="81" selection-end-line="317" selection-end-column="81" />
+          <folding>
+            <element signature="e#10901#15980#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/factor_exposure/atomic_descriptors.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1939">
+          <caret line="217" selection-start-line="217" selection-end-line="217" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/factor_exposure/data_comparison.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="277">
+          <caret line="68" lean-forward="true" selection-start-line="68" selection-end-line="68" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
+from operators import *
+
 import rqdatac
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
 
@@ -105,7 +107,7 @@ def get_recent_five_annual_shares(stock_list, date):
 
     if month > 5:
 
-        list_of_dates = [str(previous_year) + '-05-01', str(previous_year - 1) + '-05-01',str(previous_year - 2) + '-05-01', str(previous_year - 3) + '-05-01',str(previous_year - 4) + '-05-01'] \
+        list_of_dates = [str(previous_year) + '-05-01', str(previous_year - 1) + '-05-01',str(previous_year - 2) + '-05-01', str(previous_year - 3) + '-05-01',str(previous_year - 4) + '-05-01']
 
     else:
 
@@ -241,7 +243,13 @@ def get_financial_and_market_data(stock_list, latest_trading_date, trading_date_
 
     recent_report_type, annual_report_type = get_recent_financial_report(latest_trading_date.strftime('%Y-%m-%d'))
 
-    market_cap_on_current_day = rqdatac.get_factor(id_or_symbols=stock_list, factor='a_share_market_val', start_date=latest_trading_date.strftime('%Y-%m-%d'), end_date=latest_trading_date.strftime('%Y-%m-%d'))
+    market_cap_on_current_day = rqdatac.get_factor(id_or_symbols=stock_list, factor='a_share_market_val', start_date=latest_trading_date.strftime('%Y-%m-%d'), end_date=latest_trading_date.strftime('%Y-%m-%d')).dropna()
+
+    # 若市值出现缺失，取前22个交易日的市值平均值进行填补
+
+    if len(market_cap_on_current_day.index)< len(stock_list):
+
+        market_cap_on_current_day = market_cap_imputation(stock_list,market_cap_on_current_day,latest_trading_date)
 
     stock_excess_return, market_portfolio_excess_return = get_daily_excess_return(stock_list, trading_date_252_before.strftime('%Y-%m-%d'), latest_trading_date.strftime('%Y-%m-%d'))
 

@@ -3,6 +3,10 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as st
 
+import rqdatac
+
+rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
+
 import sys
 
 sys.path.append("/Users/rice/Documents/cne5_factors/factor_exposure/")
@@ -46,6 +50,31 @@ def orthogonalize(target_variable, reference_variable, regression_weight):
     return orthogonalized_target_variable
 
 
+def market_cap_imputation(stock_list,market_cap_on_current_day,latest_trading_date):
+
+    missing_market_cap_list = list(set(stock_list) - set(market_cap_on_current_day.index.tolist()))
+
+    price_on_current_day = rqdatac.get_price(missing_market_cap_list,start_date=latest_trading_date.strftime('%Y-%m-%d'),end_date=latest_trading_date.strftime('%Y-%m-%d'),frequency='1d',fields='close',adjust_type='none').T
+
+    shares_on_current_day = rqdatac.get_shares(missing_market_cap_list,latest_trading_date.strftime('%Y-%m-%d'),latest_trading_date.strftime('%Y-%m-%d'),fields='total_a').T
+
+    market_cap = pd.Series(data = (price_on_current_day * shares_on_current_day)[latest_trading_date.strftime('%Y-%m-%d')],index=missing_market_cap_list)
+
+    if market_cap.isnull().any():
+
+        missing_list = market_cap[market_cap.isnull()].index.tolist()
+
+        trading_date_22_before = rqdatac.get_trading_dates(latest_trading_date - timedelta(days=50), latest_trading_date, country='cn')[-22]
+
+        missing_market_cap = (rqdatac.get_factor(id_or_symbols=missing_list, factor='a_share_market_val', start_date=trading_date_22_before.strftime('%Y-%m-%d'), end_date=latest_trading_date.strftime('%Y-%m-%d')).mean()).fillna(market_cap_on_current_day.mean())
+
+        market_cap = pd.concat([market_cap,missing_market_cap])
+
+    imputed_market_cap_on_current_day = pd.concat([market_cap_on_current_day,market_cap])
+
+    return imputed_market_cap_on_current_day
+
+
 def atomic_descriptors_imputation_and_combination(atomic_descriptors_df, atom_descriptors_weight):
 
     missing_desriptors_position_label = atomic_descriptors_df.notnull() + 0
@@ -83,7 +112,7 @@ def style_factors_imputation(style_factors_exposure, market_cap_on_current_day, 
 
             # 若某一行业中，股票对于特定因子的暴露度没有缺失，则跳过缺失值填补流程
 
-            if (industry_style_factor_exposure[factor].isnull().any() == False):
+            if industry_style_factor_exposure[factor].isnull().any() == False:
 
                 continue
 
@@ -120,7 +149,7 @@ def individual_factor_imputation(stock_list, factor, market_cap_on_current_day, 
 
         industry_merged_df = merged_df[merged_df['industry_label'] == industry]
 
-        if (industry_merged_df['factor'].isnull().any() == False):
+        if industry_merged_df['factor'].isnull().any() == False:
 
             continue
 
@@ -141,3 +170,32 @@ def individual_factor_imputation(stock_list, factor, market_cap_on_current_day, 
     return imputed_factor
 
 
+def factor_imputation(market_cap_on_current_day,style_factors_exposure):
+
+    imputed_factor_exposure = style_factors_exposure.copy()
+
+    style_factors_exposure['market_cap'] = market_cap_on_current_day
+
+    for factor in style_factors_exposure.columns:
+
+        if style_factors_exposure[factor].isnull().any() == False:
+
+            continue
+
+        else:
+
+            missing_data_stock_list = style_factors_exposure[factor].index[style_factors_exposure[factor].astype(np.float).apply(np.isnan)]
+
+            y = style_factors_exposure[[factor, 'market_cap']].dropna()[factor].values
+
+            x = np.stack([style_factors_exposure[[factor, 'market_cap']].dropna()['market_cap'].values,
+                          np.ones(len(y))]).T
+
+            st_result = st.OLS(y, x).fit()
+
+            exogenous_variables = pd.concat([style_factors_exposure['market_cap'][missing_data_stock_list],
+                                             pd.Series(data=1, index=missing_data_stock_list)], axis=1)
+
+            imputed_factor_exposure.loc[missing_data_stock_list, factor] = exogenous_variables.dot(st_result.params)
+
+    return imputed_factor_exposure

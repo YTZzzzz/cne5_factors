@@ -36,7 +36,6 @@ def get_barra_style_exposure(date):
 
     stock_list = rqdatac.all_instruments(type = 'CS', date = latest_trading_date)['order_book_id'].values.tolist()
 
-
     style_factors = ['CNE5S_BETA', 'CNE5S_MOMENTUM', 'CNE5S_SIZE', 'CNE5S_EARNYILD', 'CNE5S_RESVOL', 'CNE5S_GROWTH',
                      'CNE5S_BTOP', 'CNE5S_LEVERAGE', 'CNE5S_LIQUIDTY', 'CNE5S_SIZENL']
 
@@ -51,11 +50,7 @@ def get_barra_style_exposure(date):
 
 date = '2017-01-06'
 
-latest_trading_date = rqdatac.get_previous_trading_date(datetime.strptime(date, "%Y-%m-%d") + timedelta(days=1))
-
-stock_list = rqdatac.all_instruments(type = 'CS', date = latest_trading_date)['order_book_id'].values.tolist()
-
-atomic_descriptors_exposure, style_factors_exposure, imputed_style_factors_exposure,stock_beta = get_style_factors(date)
+imputed_atomic_descriptors, imputed_style_factors_exposure, stock_beta = get_style_factors(date)
 
 barra_style_factor_exposure = get_barra_style_exposure(date)
 
@@ -70,7 +65,7 @@ imputed_beta_correlation = pd.concat([imputed_style_factors_exposure['beta'], ba
 
 imputed_momentum_correlation = pd.concat([imputed_style_factors_exposure['momentum'], barra_style_factor_exposure['CNE5S_MOMENTUM']], axis =1).corr()
 
-imputed_size_correlation = pd.concat([imputed_style_factors_exposure['size'], barra_style_factor_exposure['CNE5S_SIZE']], axis =1).corr()
+imputed_size_correlation = pd.concat([imputed_style_factors_exposure['size'], barra_style_factor_exposure['CNE5S_SIZE']], axis=1).corr()
 
 imputed_resvol_correlation = pd.concat([imputed_style_factors_exposure['residual_volatility'], barra_style_factor_exposure['CNE5S_RESVOL']], axis =1).corr()
 

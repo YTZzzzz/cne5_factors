@@ -250,8 +250,7 @@ def get_style_factors(date):
     stock_beta = pd.DataFrame()
 
     for benchmark in benchmark_list:
-        stock_beta[benchmark] = get_stock_beta(stock_list, stock_excess_return, benchmark, latest_trading_date,
-                                               market_cap_on_current_day)
+        stock_beta[benchmark] = get_stock_beta(stock_list, stock_excess_return, benchmark, latest_trading_date,market_cap_on_current_day)
 
     daily_standard_deviation, cumulative_range, historical_sigma, residual_volatility = get_residual_volatility(
         stock_list, latest_trading_date, stock_excess_return, market_portfolio_excess_return, market_cap_on_current_day,
@@ -259,31 +258,19 @@ def get_style_factors(date):
 
     momentum = get_momentum(stock_list, latest_trading_date, market_cap_on_current_day)
 
-    one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover, liquidity = get_liquidity(
-        stock_list, latest_trading_date, market_cap_on_current_day)
+    one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover, liquidity = get_liquidity(stock_list, latest_trading_date, market_cap_on_current_day)
 
-    earnings_to_price_ratio, cash_earnings_to_price_ratio, earnings_yield = get_earnings_yield(latest_trading_date,
-                                                                                               market_cap_on_current_day,
-                                                                                               recent_report_type,
-                                                                                               annual_report_type)
+    earnings_to_price_ratio, cash_earnings_to_price_ratio, earnings_yield = get_earnings_yield(latest_trading_date,market_cap_on_current_day,recent_report_type,annual_report_type)
 
-    book_to_price = get_book_to_price_ratio(market_cap_on_current_day, last_reported_preferred_stock,
-                                            recent_report_type)
+    book_to_price = get_book_to_price_ratio(market_cap_on_current_day, last_reported_preferred_stock,recent_report_type)
 
-    market_leverage, debt_to_assets, book_leverage, leverage = get_leverage(market_cap_on_current_day,
-                                                                            last_reported_non_current_liabilities,
-                                                                            last_reported_preferred_stock,
-                                                                            recent_report_type)
+    market_leverage, debt_to_assets, book_leverage, leverage = get_leverage(market_cap_on_current_day,last_reported_non_current_liabilities,last_reported_preferred_stock,recent_report_type)
 
-    sales_growth, earnings_growth, growth = get_growth(latest_trading_date, market_cap_on_current_day,
-                                                       recent_five_annual_shares, recent_report_type)
+    sales_growth, earnings_growth, growth = get_growth(latest_trading_date, market_cap_on_current_day,recent_five_annual_shares, recent_report_type)
 
-    style_factors_exposure = pd.concat(
-        [market_portfolio_beta_exposure, momentum, size, earnings_yield, residual_volatility, growth, book_to_price,
-         leverage, liquidity, non_linear_size], axis=1)
+    style_factors_exposure = pd.concat([market_portfolio_beta_exposure, momentum, size, earnings_yield, residual_volatility, growth, book_to_price,leverage, liquidity, non_linear_size], axis=1)
 
-    style_factors_exposure.columns = ['beta', 'momentum', 'size', 'earnings_yield', 'residual_volatility', 'growth',
-                                      'book_to_price', 'leverage', 'liquidity', 'non_linear_size']
+    style_factors_exposure.columns = ['beta', 'momentum', 'size', 'earnings_yield', 'residual_volatility', 'growth','book_to_price', 'leverage', 'liquidity', 'non_linear_size']
 
     atomic_descriptors_exposure = pd.concat(
         [daily_standard_deviation, cumulative_range, historical_sigma, one_month_share_turnover,
@@ -308,18 +295,24 @@ def get_style_factors(date):
     imputed_atomic_descriptors = pd.DataFrame()
 
     for atomic_descriptor in atomic_descriptors_exposure.columns:
-        imputed_atomic_descriptors[atomic_descriptor] = individual_factor_imputation(stock_list,
-                                                                                     atomic_descriptors_exposure[
-                                                                                         atomic_descriptor],
-                                                                                     market_cap_on_current_day,
-                                                                                     latest_trading_date.strftime(
-                                                                                         '%Y-%m-%d'))
+        imputed_atomic_descriptors[atomic_descriptor] = individual_factor_imputation(stock_list, atomic_descriptors_exposure[atomic_descriptor], market_cap_on_current_day,latest_trading_date.strftime('%Y-%m-%d'))
 
     # 用回归方法处理风格因子暴露度的缺失值
 
-    imputed_style_factors_exposure = style_factors_imputation(style_factors_exposure, market_cap_on_current_day,
-                                                              latest_trading_date.strftime('%Y-%m-%d'))
+    imputed_style_factors_exposure = style_factors_imputation(style_factors_exposure, market_cap_on_current_day,latest_trading_date.strftime('%Y-%m-%d'))
 
-    # 返回缺失值填充前后风格因子暴露度，方便比对相关性
+    # 若经过缺失值处理后因子暴露度依旧存在缺失值，使用全市场股票进行回归，填补缺失值
+
+    if imputed_style_factors_exposure.isnull().sum().sum() > 0:
+
+        imputed_style_factors_exposure = factor_imputation(market_cap_on_current_day,imputed_style_factors_exposure)
+
+    if imputed_atomic_descriptors.isnull().sum().sum() > 0:
+
+        imputed_atomic_descriptors = factor_imputation(market_cap_on_current_day,imputed_atomic_descriptors)
+
+    if stock_beta.isnull().sum().sum() > 0:
+
+        stock_beta = factor_imputation(market_cap_on_current_day, stock_beta)
 
     return imputed_atomic_descriptors, imputed_style_factors_exposure, stock_beta
