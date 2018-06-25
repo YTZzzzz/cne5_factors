@@ -1,5 +1,4 @@
 import sys
-
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -43,7 +42,7 @@ def get_market_portfolio_return(filtered_stock_daily_return, market_cap_on_curre
     return market_portfolio_daily_return
 
 
-def get_daily_excess_return(stock_list, market_cap_on_current_day, start_date, end_date):
+def get_daily_excess_return(stock_list, start_date, end_date):
 
     # 提取股票价格数据，对于退市情况，考虑作股价向前填补（日收益率为0）
 
@@ -54,10 +53,6 @@ def get_daily_excess_return(stock_list, market_cap_on_current_day, start_date, e
     inds = stock_daily_return.isnull().sum()[stock_daily_return.isnull().sum() > 0].index
 
     filtered_stock_daily_return = stock_daily_return.drop(inds, axis=1)
-
-    # 目前的实现存在问题，应该每一天提取当天上市的股票，以及上市公司的市值，筛选 market portfolio 的股票池和进行收益率计算。待 Barra 确认相关计算方法后，再进行预计算。
-
-    #market_portfolio_daily_return = get_market_portfolio_return(filtered_stock_daily_return, market_cap_on_current_day)
 
     # 经测试发现，中证全指（000985）作为 market portfolio 的效果最好
 
@@ -108,9 +103,13 @@ def get_recent_five_annual_shares(stock_list, date):
 
     month = datetime.strptime(date, '%Y-%m-%d').month
 
-    list_of_dates = [str(previous_year) + '-05-01', str(previous_year - 1) + '-05-01',str(previous_year - 2) + '-05-01', str(previous_year - 3) + '-05-01',str(previous_year - 4) + '-05-01'] \
-        if month > 5 \
-        else [str(previous_year-1) + '-05-01', str(previous_year - 2) + '-05-01',str(previous_year - 3) + '-05-01', str(previous_year - 4) + '-05-01',str(previous_year - 5) + '-05-01']
+    if month > 5:
+
+        list_of_dates = [str(previous_year) + '-05-01', str(previous_year - 1) + '-05-01',str(previous_year - 2) + '-05-01', str(previous_year - 3) + '-05-01',str(previous_year - 4) + '-05-01'] \
+
+    else:
+
+        list_of_dates = [str(previous_year-1) + '-05-01', str(previous_year - 2) + '-05-01',str(previous_year - 3) + '-05-01', str(previous_year - 4) + '-05-01',str(previous_year - 5) + '-05-01']
 
     recent_five_annual_shares = pd.DataFrame()
 
@@ -244,7 +243,7 @@ def get_financial_and_market_data(stock_list, latest_trading_date, trading_date_
 
     market_cap_on_current_day = rqdatac.get_factor(id_or_symbols=stock_list, factor='a_share_market_val', start_date=latest_trading_date.strftime('%Y-%m-%d'), end_date=latest_trading_date.strftime('%Y-%m-%d'))
 
-    stock_excess_return, market_portfolio_excess_return = get_daily_excess_return(stock_list, market_cap_on_current_day, trading_date_252_before.strftime('%Y-%m-%d'), latest_trading_date.strftime('%Y-%m-%d'))
+    stock_excess_return, market_portfolio_excess_return = get_daily_excess_return(stock_list, trading_date_252_before.strftime('%Y-%m-%d'), latest_trading_date.strftime('%Y-%m-%d'))
 
     recent_five_annual_shares = get_recent_five_annual_shares(stock_list, latest_trading_date.strftime('%Y-%m-%d'))
 

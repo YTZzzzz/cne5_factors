@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from datetime import timedelta
-from sklearn import linear_model
+
 
 import rqdatac
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
@@ -21,9 +21,7 @@ def get_daily_standard_deviation(stock_excess_return, market_cap_on_current_day)
 
     weighted_stock_excess_return = stock_excess_return.T.multiply(exp_weight).T
 
-    # 把股票超额收益率中的缺失值替换为 0（缺失值多于66个的股票已被剔除）
-
-    sum_of_squares = (weighted_stock_excess_return - weighted_stock_excess_return.mean()).replace(np.nan,0).pow(2).sum()
+    sum_of_squares = (weighted_stock_excess_return - weighted_stock_excess_return.mean()).pow(2).sum()
 
     weighted_stock_standard_deviation = sum_of_squares.divide(len(stock_excess_return) - 1).pow(0.5)
 
@@ -40,7 +38,7 @@ def get_cumulative_range(stock_list, date, market_cap_on_current_day):
 
     # 剔除收益率数据存在空值的股票
 
-    inds = stock_daily_return.isnull().sum()[stock_daily_return.isnull().sum() > 0].index
+    inds = daily_return.isnull().sum()[daily_return.isnull().sum() > 0].index
 
     daily_return = daily_return.drop(daily_return[inds], axis=1)
 
@@ -90,24 +88,6 @@ def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, ma
     orthogonalized_weighted_residual_volatility = orthogonalize(target_variable = weighted_residual_volatility, reference_variable = market_portfolio_beta_exposure, regression_weight = np.sqrt(market_cap_on_current_day)/(np.sqrt(market_cap_on_current_day).sum()))
 
     processed_weighted_residual_volatility = winsorization_and_market_cap_weighed_standardization(orthogonalized_weighted_residual_volatility, market_cap_on_current_day[weighted_residual_volatility.index])
-
-    # 上述贝塔个阿尔法的计算，和 statsmodel 的计算结果对比
-
-    #import statsmodels.api as st
-
-    #X = np.stack([weighted_market_portfolio_excess_return.values, np.ones(len(weighted_market_portfolio_excess_return.values))]).T
-
-    #Y = weighted_stock_excess_return['300364.XSHE'].values
-
-    #st_result = st.OLS(Y, X).fit()
-
-    #print(st_result.params)
-
-    #print(weighted_market_portfolio_excess_return.cov(weighted_stock_excess_return['300364.XSHE']) / weighted_market_portfolio_excess_return.var())
-
-    #alpha = weighted_stock_excess_return['300364.XSHE'].mean() - st_result.params[0] * weighted_market_portfolio_excess_return.mean()
-
-    #print(alpha)
 
     return processed_weighted_residual_volatility
 

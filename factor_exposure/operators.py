@@ -1,6 +1,7 @@
 import scipy.optimize as sc_opt
 import numpy as np
 import pandas as pd
+import statsmodels.api as st
 
 import sys
 
@@ -103,5 +104,40 @@ def style_factors_imputation(style_factors_exposure, market_cap_on_current_day, 
     return imputed_style_factors_exposure
 
 
+def individual_factor_imputation(stock_list, factor, market_cap_on_current_day, date):
+
+    industry_label = get_shenwan_industry_label(stock_list, date)
+
+    merged_df = pd.concat([factor, market_cap_on_current_day, industry_label], axis = 1)
+
+    merged_df.columns = ['factor', 'market_cap', 'industry_label']
+
+    imputed_factor = merged_df['factor'].copy()
+
+    # 和因子暴露度缺失值填补逻辑类似，以回归法填补因子的缺失值
+
+    for industry in industry_label.unique():
+
+        industry_merged_df = merged_df[merged_df['industry_label'] == industry]
+
+        if (industry_merged_df['factor'].isnull().any() == False):
+
+            continue
+
+        else:
+
+            missing_value_stock_list = industry_merged_df['factor'].index[industry_merged_df['factor'].astype(np.float).apply(np.isnan)]
+
+            y = industry_merged_df.dropna()['factor'].values
+
+            x = np.stack([industry_merged_df.dropna()['market_cap'].values, np.ones(len(y))]).T
+
+            st_result = st.OLS(y, x).fit()
+
+            exogenous_variables = pd.concat([industry_merged_df['market_cap'][missing_value_stock_list], pd.Series(data = 1, index = missing_value_stock_list)], axis = 1)
+
+            imputed_factor.loc[missing_value_stock_list] = exogenous_variables.dot(st_result.params)
+
+    return imputed_factor
 
 
