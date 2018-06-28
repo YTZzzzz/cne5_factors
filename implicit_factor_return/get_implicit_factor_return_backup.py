@@ -6,8 +6,6 @@ from datetime import timedelta
 
 import rqdatac
 
-#rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
-
 rqdatac.init('rice','rice',('192.168.10.64',16008))
 
 
@@ -63,76 +61,19 @@ def get_shenwan_industry_exposure(stock_list, date):
     return industry_exposure_df.index.tolist(), industry_exposure_df
 
 
-def get_gics_exposure(stock_list,date):
+def get_exposure(stock_list,date):
 
-    industry_factors = ['CNE5S_ENERGY', 'CNE5S_CHEM', 'CNE5S_CONMAT', 'CNE5S_MTLMIN', 'CNE5S_MATERIAL', 'CNE5S_AERODEF',
-                        'CNE5S_BLDPROD', 'CNE5S_CNSTENG', 'CNE5S_ELECEQP', 'CNE5S_INDCONG', 'CNE5S_MACH',
-                        'CNE5S_TRDDIST',
-                        'CNE5S_COMSERV', 'CNE5S_AIRLINE', 'CNE5S_MARINE', 'CNE5S_RDRLTRAN', 'CNE5S_AUTO',
-                        'CNE5S_HOUSEDUR',
-                        'CNE5S_LEISLUX', 'CNE5S_CONSSERV', 'CNE5S_MEDIA', 'CNE5S_RETAIL', 'CNE5S_PERSPRD', 'CNE5S_BEV',
-                        'CNE5S_FOODPROD', 'CNE5S_HEALTH', 'CNE5S_BANKS', 'CNE5S_DVFININS', 'CNE5S_REALEST',
-                        'CNE5S_SOFTWARE', 'CNE5S_HDWRSEMI', 'CNE5S_UTILITIE']
-
-    industry_exposure = rqdatac.barra.get_factor_exposure(stock_list, date, date, industry_factors)
-
-    industry_exposure.index = industry_exposure.index.droplevel('date')
-
-    return industry_exposure
-
-
-def get_style_exposure(stock_list, date):
+    non_missing_stock_list,industry_exposure = get_shenwan_industry_exposure(stock_list, date)
 
     style_exposure = rqdatac.get_style_factor_exposure(stock_list, date, date, factors = 'all')
 
     style_exposure.index = style_exposure.index.droplevel('date')
 
-    return style_exposure
+    factor_exposure = pd.concat([style_exposure,industry_exposure],axis=1)
 
+    factor_exposure['市场联动'] = 1
 
-def get_barra_exposure(stock_list, date):
-
-    style_factors = ['CNE5S_BETA', 'CNE5S_MOMENTUM', 'CNE5S_SIZE', 'CNE5S_EARNYILD', 'CNE5S_RESVOL', 'CNE5S_GROWTH',
-                     'CNE5S_BTOP', 'CNE5S_LEVERAGE', 'CNE5S_LIQUIDTY', 'CNE5S_SIZENL']
-
-    style_exposure = rqdatac.barra.get_factor_exposure(stock_list, date, date, style_factors)
-
-    style_exposure.index = style_exposure.index.droplevel('date')
-
-    return style_exposure
-
-
-def get_exposure(stock_list,date):
-
-    rq_style_exposure = get_style_exposure(stock_list, date)
-
-    rq_style_exposure.columns = ['CNE5S_BETA', 'CNE5S_MOMENTUM', 'CNE5S_SIZE', 'CNE5S_EARNYILD', 'CNE5S_RESVOL',
-                                 'CNE5S_GROWTH',
-                                 'CNE5S_BTOP', 'CNE5S_LEVERAGE', 'CNE5S_LIQUIDTY', 'CNE5S_SIZENL']
-
-    non_missing_stock_list,rq_industry_exposure = get_shenwan_industry_exposure(stock_list, date)
-
-    barra_style_exposure = get_barra_exposure(stock_list, date)
-
-    barra_industry_exposure = get_gics_exposure(stock_list,date)
-
-    rq_exposure = pd.concat([rq_style_exposure,rq_industry_exposure],axis=1)
-
-    rq_style_barra_industry = pd.concat([rq_style_exposure.loc[barra_style_exposure.index],barra_industry_exposure],axis=1)
-
-    barra_exposure = pd.concat([barra_style_exposure,barra_industry_exposure],axis=1)
-
-    barra_style_rq_industry_exposure = pd.concat([barra_style_exposure,rq_industry_exposure.loc[barra_style_exposure.index]],axis=1)
-
-    rq_exposure['市场联动'] = 1
-
-    rq_style_barra_industry['市场联动'] = 1
-
-    barra_exposure['市场联动'] = 1
-
-    barra_style_rq_industry_exposure['市场联动'] = 1
-
-    return rq_exposure,rq_style_barra_industry,barra_exposure,barra_style_rq_industry_exposure
+    return factor_exposure
 
 
 def constrainted_weighted_least_square(Y, X, weight, industry_total_market_cap, unconstrained_variables, constrained_variables):
@@ -158,7 +99,7 @@ def constrainted_weighted_least_square(Y, X, weight, industry_total_market_cap, 
     return factor_returns
 
 
-def factor_return_estimation(stock_list, date, factor_exposure,industry_factors):
+def factor_return_estimation(stock_list, date, factor_exposure):
 
     latest_trading_date = rqdatac.get_previous_trading_date(datetime.strptime(date, "%Y-%m-%d") + timedelta(days=1))
 
@@ -181,6 +122,17 @@ def factor_return_estimation(stock_list, date, factor_exposure,industry_factors)
     normalized_regression_weight = market_cap.pow(0.5)/market_cap.pow(0.5).sum()
 
     # 各行业市值之和，用于行业收益率约束条件
+
+    if date > '2014-01-01':
+
+        industry_factors = ['农林牧渔', '采掘', '化工', '钢铁', '有色金属', '电子', '家用电器', '食品饮料', '纺织服装', '轻工制造',\
+                            '医药生物', '公用事业', '交通运输', '房地产', '商业贸易', '休闲服务','综合', '建筑材料',  '建筑装饰', '电气设备',\
+                            '国防军工', '计算机', '传媒', '通信', '银行', '非银金融', '汽车', '机械设备']
+    else:
+
+        industry_factors = ['金融服务', '房地产', '医药生物', '有色金属', '餐饮旅游', '综合', '建筑建材', '家用电器',
+                            '交运设备', '食品饮料', '电子', '信息设备', '交通运输', '轻工制造', '公用事业', '机械设备',
+                            '纺织服装', '农林牧渔', '商业贸易', '化工', '信息服务', '采掘', '黑色金属']
 
     industry_total_market_cap = market_cap.loc[factor_exposure.index].dot(factor_exposure[industry_factors] )
 
@@ -248,115 +200,14 @@ def get_implicit_factor_return(date):
 
     # 取前一交易日全市场已经上市的股票，保证日收益率计算
 
-    stock_list = rqdatac.all_instruments(type = 'CS', date = previous_trading_date)['order_book_id'].values.tolist()
+    stock_list = rqdatac.all_instruments(type='CS', date=previous_trading_date)['order_book_id'].values.tolist()
 
     # 计算全市场前一交易日的行业暴露度
 
-    rq_exposure, rq_style_barra_industry, barra_exposure, barra_style_rq_industry_exposure = get_exposure(stock_list,previous_trading_date)
+    factor_exposure = get_exposure(stock_list,previous_trading_date)
 
     # 根据上述四类暴露度计算因子收益率
 
-    shenwan_industry_name = ['农林牧渔', '采掘', '化工', '钢铁', '有色金属', '电子', '家用电器', '食品饮料', '纺织服装', '轻工制造',\
-                             '医药生物', '公用事业', '交通运输', '房地产', '商业贸易', '休闲服务','综合', '建筑材料',  '建筑装饰', '电气设备',\
-                             '国防军工', '计算机', '传媒', '通信', '银行', '非银金融', '汽车', '机械设备']
+    factor_returns = factor_return_estimation(stock_list, date, factor_exposure)
 
-
-    industry_factors = ['CNE5S_ENERGY', 'CNE5S_CHEM', 'CNE5S_CONMAT', 'CNE5S_MTLMIN', 'CNE5S_MATERIAL', 'CNE5S_AERODEF',
-                        'CNE5S_BLDPROD', 'CNE5S_CNSTENG', 'CNE5S_ELECEQP', 'CNE5S_INDCONG', 'CNE5S_MACH',
-                        'CNE5S_TRDDIST',
-                        'CNE5S_COMSERV', 'CNE5S_AIRLINE', 'CNE5S_MARINE', 'CNE5S_RDRLTRAN', 'CNE5S_AUTO',
-                        'CNE5S_HOUSEDUR',
-                        'CNE5S_LEISLUX', 'CNE5S_CONSSERV', 'CNE5S_MEDIA', 'CNE5S_RETAIL', 'CNE5S_PERSPRD', 'CNE5S_BEV',
-                        'CNE5S_FOODPROD', 'CNE5S_HEALTH', 'CNE5S_BANKS', 'CNE5S_DVFININS', 'CNE5S_REALEST',
-                        'CNE5S_SOFTWARE', 'CNE5S_HDWRSEMI', 'CNE5S_UTILITIE']
-
-    rq_factor_returns = factor_return_estimation(stock_list, date, rq_exposure,shenwan_industry_name)
-
-    rq_style_barra_industry_factor_returns = factor_return_estimation(stock_list, date, rq_style_barra_industry,industry_factors)
-
-    barra_factor_returns = factor_return_estimation(stock_list, date, barra_exposure,industry_factors)
-
-    barra_style_rq_industry_factor_returns = factor_return_estimation(stock_list, date, barra_style_rq_industry_exposure,shenwan_industry_name)
-
-    return rq_factor_returns,rq_style_barra_industry_factor_returns,barra_factor_returns,barra_style_rq_industry_factor_returns
-
-
-test_trading_dates = ['2017-01-17','2017-02-07','2017-03-13','2017-04-10','2017-05-18','2017-06-08','2017-07-18','2017-08-01']
-
-correlation = pd.DataFrame(index=test_trading_dates,columns=['r_correlation','rsbi_correlation','b_correlation','bsri_correlation'])
-
-barra_style_factors = ['CNE5S_BETA', 'CNE5S_MOMENTUM', 'CNE5S_SIZE', 'CNE5S_EARNYILD', 'CNE5S_RESVOL', 'CNE5S_GROWTH',
-                 'CNE5S_BTOP', 'CNE5S_LEVERAGE', 'CNE5S_LIQUIDTY', 'CNE5S_SIZENL']
-
-rq_style_factors = ['beta', 'momentum', 'size', 'earnings_yield', 'residual_volatility', 'growth',
-                    'book_to_price', 'leverage', 'liquidity', 'non_linear_size']
-
-for dates in test_trading_dates:
-
-    rq_factor_returns, rq_style_barra_industry_factor_returns, barra_factor_returns, barra_style_rq_industry_factor_returns = get_implicit_factor_return(str(dates))
-
-    factor_returns = rqdatac.barra.get_factor_return(dates, dates, barra_style_factors).T[dates]
-
-    correlation['r_correlation'].loc[dates] = rq_factor_returns['whole_market'].loc[barra_style_factors].corr(factor_returns)
-
-    correlation['rsbi_correlation'].loc[dates] = rq_style_barra_industry_factor_returns['whole_market'].loc[barra_style_factors].corr(factor_returns)
-
-    correlation['b_correlation'].loc[dates] = barra_factor_returns['whole_market'].loc[barra_style_factors].corr(factor_returns)
-
-    correlation['bsri_correlation'].loc[dates] = barra_style_rq_industry_factor_returns['whole_market'].loc[barra_style_factors].corr(factor_returns)
-
-
-
-
-
-
-
-
-'''
-factor_returns = get_implicit_factor_return('2017-02-02')
-
-
-industry_factors = ['CNE5S_ENERGY', 'CNE5S_CHEM', 'CNE5S_CONMAT', 'CNE5S_MTLMIN', 'CNE5S_MATERIAL', 'CNE5S_AERODEF', \
-                    'CNE5S_BLDPROD', 'CNE5S_CNSTENG', 'CNE5S_ELECEQP', 'CNE5S_INDCONG', 'CNE5S_MACH', 'CNE5S_TRDDIST', \
-                    'CNE5S_COMSERV', 'CNE5S_AIRLINE', 'CNE5S_MARINE', 'CNE5S_RDRLTRAN', 'CNE5S_AUTO', 'CNE5S_HOUSEDUR', \
-                    'CNE5S_LEISLUX', 'CNE5S_CONSSERV', 'CNE5S_MEDIA', 'CNE5S_RETAIL', 'CNE5S_PERSPRD', 'CNE5S_BEV', \
-                    'CNE5S_FOODPROD', 'CNE5S_HEALTH', 'CNE5S_BANKS', 'CNE5S_DVFININS', 'CNE5S_REALEST',
-                    'CNE5S_SOFTWARE', 'CNE5S_HDWRSEMI', 'CNE5S_UTILITIE']
-
-barra_style_factors = ['CNE5S_BETA', 'CNE5S_MOMENTUM', 'CNE5S_SIZE', 'CNE5S_EARNYILD', 'CNE5S_RESVOL', 'CNE5S_GROWTH',
-                 'CNE5S_BTOP', 'CNE5S_LEVERAGE', 'CNE5S_LIQUIDTY', 'CNE5S_SIZENL']
-
-country_factor = ['CNE5S_COUNTRY']
-
-all_factors = style_factors + country_factor + industry_factors
-
-barra_factor_returns = rqdatac.barra.get_factor_return('2018-02-02', '2018-02-02', style_factors)
-
-barra_index = pd.Series([1,2, 3, 4, 5, 6, 7, 8, 9, 10], index = barra_style_factors)
-
-rq_style_factors = ['beta', 'momentum', 'size', 'earnings_yield', 'residual_volatility', 'growth',
-                    'book_to_price', 'leverage', 'liquidity', 'non_linear_size']
-
-rq_index = pd.Series(rq_style_factors, index = [1,2, 3, 4, 5, 6, 7, 8, 9, 10])
-
-index_mapping = barra_index.map(rq_index)
-
-barra_factor_returns.columns = rq_style_factors
-
-barra_style_factor = pd.concat([barra_factor_returns.T, index_mapping], axis = 1)
-
-barra_style_factor.columns = ['values', 'rq_index']
-
-barra_style_factor.index = barra_style_factor['rq_index']
-
-merged_factor_returns = pd.concat([factor_returns['whole_market'][rq_style_factors], barra_style_factor['values']], axis = 1)
-
-merged_factor_returns.columns = ['replicated_factor_return', 'original_factor_return']
-
-#merged_factor_returns.loc[industry_factors]
-
-merged_factor_returns.loc[style_factors]
-
-print('corr', merged_factor_returns.corr())
-'''
-
+    return factor_returns
