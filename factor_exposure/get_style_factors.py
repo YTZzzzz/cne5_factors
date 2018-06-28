@@ -83,11 +83,11 @@ def get_size(market_cap_on_current_day):
     return processed_size
 
 
-def get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type, annual_report_type):
+def get_earnings_yield(latest_trading_date, market_cap_on_current_day, recent_report_type):
 
-    earnings_to_price_ratio = get_earnings_to_price_ratio(latest_trading_date, recent_report_type, annual_report_type,market_cap_on_current_day)
+    earnings_to_price_ratio = get_earnings_to_price_ratio(latest_trading_date, recent_report_type, market_cap_on_current_day)
 
-    cash_earnings_to_price_ratio = get_cash_earnings_to_price_ratio(latest_trading_date, recent_report_type,annual_report_type, market_cap_on_current_day)
+    cash_earnings_to_price_ratio = get_cash_earnings_to_price_ratio(latest_trading_date, recent_report_type, market_cap_on_current_day)
 
     earnings_yield = earnings_to_price_ratio
 
@@ -260,7 +260,7 @@ def get_style_factors(date):
 
     one_month_share_turnover, three_months_share_turnover, twelve_months_share_turnover, liquidity = get_liquidity(stock_list, latest_trading_date, market_cap_on_current_day)
 
-    earnings_to_price_ratio, cash_earnings_to_price_ratio, earnings_yield = get_earnings_yield(latest_trading_date,market_cap_on_current_day,recent_report_type,annual_report_type)
+    earnings_to_price_ratio, cash_earnings_to_price_ratio, earnings_yield = get_earnings_yield(latest_trading_date,market_cap_on_current_day,recent_report_type)
 
     book_to_price = get_book_to_price_ratio(market_cap_on_current_day, last_reported_preferred_stock,recent_report_type)
 

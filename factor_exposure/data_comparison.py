@@ -278,3 +278,68 @@ print('max',  computed_beta_exposure.max(), beta_exposure.max())
 print('corr', merged_size_exposure.corr())
 
 print('tail', merged_size_exposure.tail())
+
+
+
+# 测试相关性
+
+start_date = '2017-01-03'
+
+date = '2017-04-24'
+
+stock_list = rqdatac.all_instruments(type='CS', date=date)['order_book_id'].values.tolist()
+
+style_exposure = rqdatac.barra.get_style_factor_exposure(stock_list,start_date,date)
+
+tradings_date = rqdatac.get_trading_dates(start_date,date,country='cn')
+
+beta_correlation = pd.Series(index=tradings_date)
+momentum_correlation = pd.Series(index=tradings_date)
+size_correlation = pd.Series(index=tradings_date)
+resvol_correlation = pd.Series(index=tradings_date)
+growth_correlation = pd.Series(index=tradings_date)
+book_to_price_correlation = pd.Series(index=tradings_date)
+leverage_correlation = pd.Series(index=tradings_date)
+liquidity_correlation = pd.Series(index=tradings_date)
+non_linear_size_correlation = pd.Series(index=tradings_date)
+
+earnings_yield_correlation = pd.Series(index=tradings_date)
+
+for dates in tradings_date:
+    
+    component_exposure_of_a_day = style_exposure.xs(dates, level=1, drop_level=True)
+
+    barra_style_factor_exposure = get_barra_style_exposure(str(dates))
+
+    earnings_yield_correlation.loc[dates]  = pd.concat([component_exposure_of_a_day['earnings_yield'].astype(np.float),
+                                                    barra_style_factor_exposure['CNE5S_EARNYILD']], axis=1).corr()['earnings_yield'][1]
+
+    beta_correlation.loc[dates] = pd.concat(
+        [component_exposure_of_a_day['beta'], barra_style_factor_exposure['CNE5S_BETA']], axis=1).corr()['beta'][1]
+
+    momentum_correlation.loc[dates]  = pd.concat(
+        [component_exposure_of_a_day['momentum'], barra_style_factor_exposure['CNE5S_MOMENTUM']], axis=1).corr()['momentum'][1]
+
+    size_correlation.loc[dates]  = pd.concat(
+        [component_exposure_of_a_day['size'], barra_style_factor_exposure['CNE5S_SIZE']], axis=1).corr()['size'][1]
+
+    resvol_correlation.loc[dates]  = pd.concat(
+        [component_exposure_of_a_day['residual_volatility'], barra_style_factor_exposure['CNE5S_RESVOL']],
+        axis=1).corr()['residual_volatility'][1]
+
+    growth_correlation.loc[dates]  = pd.concat(
+        [component_exposure_of_a_day['growth'], barra_style_factor_exposure['CNE5S_GROWTH']], axis=1).corr()['growth'][1]
+
+    book_to_price_correlation.loc[dates]  = pd.concat(
+        [component_exposure_of_a_day['book_to_price'].astype(np.float), barra_style_factor_exposure['CNE5S_BTOP']],
+        axis=1).corr()['book_to_price'][1]
+
+    leverage_correlation.loc[dates]  = pd.concat(
+        [component_exposure_of_a_day['leverage'], barra_style_factor_exposure['CNE5S_LEVERAGE']], axis=1).corr()['leverage'][1]
+
+    liquidity_correlation.loc[dates]  = pd.concat(
+        [component_exposure_of_a_day['liquidity'], barra_style_factor_exposure['CNE5S_LIQUIDTY']], axis=1).corr()['liquidity'][1]
+
+    non_linear_size_correlation.loc[dates]  = pd.concat(
+        [component_exposure_of_a_day['non_linear_size'], barra_style_factor_exposure['CNE5S_SIZENL']], axis=1).corr()['non_linear_size'][1]
+

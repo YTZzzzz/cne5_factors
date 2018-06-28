@@ -130,45 +130,51 @@ def get_recent_five_annual_shares(stock_list, date):
 
 # 计算原生指标过去十二个月的滚动值（利润表、现金流量表滚动求和）
 
-def get_ttm_sum(financial_indicator, date, recent_report_type, annual_report_type):
+def get_ttm_sum(financial_indicator,recent_report_type):
 
-    previous_year = datetime.strptime(date, '%Y-%m-%d').year - 1
+    def _get_ttm_date(quarter):
+        # 假设最新的为年报，则为年报数值
+        if quarter[-2:] == "q4":
+            return [np.nan,np.nan,quarter]
+        # 假设当前为1/2/3季度报
+        elif quarter[-2:] == "q3" or quarter[-2:] == "q2" or quarter[-2:]=="q1":
+            return [str(int(quarter[:4]) - 1) + quarter[-2:], str(int(quarter[:4]) - 1) + "q4", quarter]
+        else:
+            print(quarter)
 
-    month_now = datetime.strptime(date, '%Y-%m-%d').month
+            raise Exception("what?")
 
-    # 获得最近一期报告为年报的股票列表
+    # 获得所有股票中最新的quarter
+    max_quarter = max(recent_report_type)
+    # 获得所有股票前8期的财报数据
+    financial_data = rqdatac.get_financials(rqdatac.query(financial_indicator),quarter=max_quarter, interval="8q", country='cn').T
 
-    annual_report_published_stocks = recent_report_type[recent_report_type == str(previous_year) + 'q4'].index.tolist()
+    effective_quarter = pd.DataFrame(recent_report_type.apply(_get_ttm_date).to_dict()).T
 
-    # 把 index 和 list 转为集合类型，再计算补集
+    # 获得每个股票计算ttm需要的三个财报日期
+    effective_quarter = effective_quarter.unstack()
 
-    annual_report_not_published_stocks = list(set(recent_report_type.index) - set(annual_report_published_stocks))
+    effective_quarter.index = effective_quarter.index.droplevel(0)
+    merged_data = pd.DataFrame(effective_quarter)
+    merged_data['mask'] = 1
+    previous_quarters_mask = merged_data.dropna().reset_index().pivot(index='index', columns=0, values='mask').reindex(
+        columns=financial_data.columns).astype(float).replace(np.nan, 0).astype(bool)
+    latest_data = financial_data.where(previous_quarters_mask)
+    # （最近一期年报财务数据 + 最近一期报告财务数据 - 去年同期报告财务数据）
 
-    # 计算最近一期财报为年报的股票的TTM
+    def _calc_ttm(data):
+        # print(data)
+        data = data.dropna().sort_index()
+        if len(data)>1:
+            return data.iloc[-2:].sum()-data.iloc[0]
+        elif len(data) == 1:
+            return data.iloc[0]
+        else:
+            return np.nan
 
-    annual_published_recent_annual_values = [rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_([stock])), annual_report_type[stock], '1q').values[0] for stock in annual_report_published_stocks]
+    financial_values = {item[0]: _calc_ttm(item[1]) for item in latest_data.iterrows()}
 
-    annual_published_ttm_values = pd.Series(index=annual_report_published_stocks, data=annual_published_recent_annual_values)
-
-    # 计算最近一期财报不是年报的股票的TTM
-
-    # 获取最近五期财报的财务数据
-
-    recent_five_reports = rqdatac.get_financials(rqdatac.query(financial_indicator).filter(rqdatac.financials.stockcode.in_(annual_report_not_published_stocks)), recent_report_type[0], '5q')
-
-    # 对于最近一期报告不是年报的上市公司，其财务数据的 TTM 值为（最近一期年报财务数据 + 最近一期报告财务数据 - 去年同期报告财务数据）
-
-    recent_values = recent_five_reports.iloc[0]
-
-    recent_annual_values = [recent_five_reports.loc[str(previous_year) + 'q4'] if month_now >= 5 else recent_five_reports.loc[str(previous_year - 1) + 'q4']][0]
-
-    previous_same_period_values = recent_five_reports.iloc[-1]
-
-    annual_not_published_ttm_values = recent_annual_values + recent_values - previous_same_period_values
-
-    ttm_series = pd.concat([annual_published_ttm_values, annual_not_published_ttm_values], axis=0)
-
-    return ttm_series
+    return pd.Series(financial_values)
 
 
 # 调取最近一期财报数据

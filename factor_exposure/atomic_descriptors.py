@@ -92,9 +92,9 @@ def get_historical_sigma(stock_excess_return, market_portfolio_excess_return, ma
     return processed_weighted_residual_volatility
 
 
-def get_earnings_to_price_ratio(latest_trading_date,recent_report_type,annual_report_type,market_cap_on_current_day):
+def get_earnings_to_price_ratio(latest_trading_date,recent_report_type,market_cap_on_current_day):
 
-    net_profit_ttm = get_ttm_sum(rqdatac.financials.income_statement.profit_before_tax, str(latest_trading_date), recent_report_type, annual_report_type)
+    net_profit_ttm = get_ttm_sum(rqdatac.financials.income_statement.profit_before_tax, recent_report_type)
 
     stock_list = net_profit_ttm.index.tolist()
 
@@ -109,9 +109,9 @@ def get_earnings_to_price_ratio(latest_trading_date,recent_report_type,annual_re
     return processed_earning_to_price
 
 
-def get_cash_earnings_to_price_ratio(latest_trading_date,recent_report_type,annual_report_type,market_cap_on_current_day):
+def get_cash_earnings_to_price_ratio(latest_trading_date,recent_report_type,market_cap_on_current_day):
 
-    cash_ttm = get_ttm_sum(rqdatac.financials.cash_flow_statement.cash_flow_from_operating_activities, str(latest_trading_date), recent_report_type, annual_report_type)
+    cash_ttm = get_ttm_sum(rqdatac.financials.cash_flow_statement.cash_flow_from_operating_activities, recent_report_type)
 
     stock_list = cash_ttm.index.tolist()
 
