@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import rqdatac
 
-rqdatac.init('rice','rice',('192.168.10.64',16008))
+rqdatac.init('rice', 'rice', ('192.168.10.64', 16009))
 
 
 def get_shenwan_industry_exposure(stock_list, date):

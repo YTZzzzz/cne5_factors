@@ -52,7 +52,7 @@ def get_cumulative_range(stock_list, date, market_cap_on_current_day):
 
     spliting_points = np.arange(0, 273, 21)
 
-    cummulative_return = pd.DataFrame()
+    cumulative_return = pd.DataFrame()
 
     for period in range(1, len(spliting_points)):
 
@@ -60,9 +60,11 @@ def get_cumulative_range(stock_list, date, market_cap_on_current_day):
 
         compounded_risk_free_return = ((1 + risk_free_return.iloc[spliting_points[0]:spliting_points[period]]).cumprod() - 1).iloc[-1]
 
-        cummulative_return[period] = np.log(1 + compounded_return).subtract(np.log(1 + compounded_risk_free_return.iloc[0]))
+        cumulative_return[period] = np.log(1 + compounded_return).subtract(np.log(1 + compounded_risk_free_return.iloc[0]))
 
-    processed_cumulative_range = winsorization_and_market_cap_weighed_standardization(cummulative_return.T.max() - cummulative_return.T.min(), market_cap_on_current_day)
+    cumulative_return = cumulative_return.cumsum(axis=1)
+
+    processed_cumulative_range = winsorization_and_market_cap_weighed_standardization(cumulative_return.T.max() - cumulative_return.T.min(), market_cap_on_current_day)
 
     return processed_cumulative_range
 

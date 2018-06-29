@@ -44,17 +44,18 @@ def get_market_portfolio_beta(stock_excess_return, market_portfolio_excess_retur
 
 
 def get_momentum(stock_list, date, market_cap_on_current_day):
-    trading_date_505_before = rqdatac.get_trading_dates(date - timedelta(days=1000), date, country='cn')[-504]
+
+    trading_date_525_before = rqdatac.get_trading_dates(date - timedelta(days=1000), date, country='cn')[-525]
 
     trading_date_21_before = rqdatac.get_trading_dates(date - timedelta(days=40), date, country='cn')[-21]
 
-    # 共需要 504 - 21 = 483 个交易日的收益率
+    # 共需要 525 - 21 = 504 个交易日的收益率
 
-    exp_weight = get_exponential_weight(half_life=126, length=483)
+    exp_weight = get_exponential_weight(half_life=126, length=504)
 
     # 提取股票价格数据，对于退市情况，考虑作股价向前填补（日收益率为0）
 
-    daily_return = rqdatac.get_price(stock_list, trading_date_505_before, trading_date_21_before, frequency='1d',
+    daily_return = rqdatac.get_price(stock_list, trading_date_525_before, trading_date_21_before, frequency='1d',
                                      fields='close').fillna(method='ffill').pct_change()[1:]
 
     # 剔除收益率数据存在空值的股票
@@ -65,7 +66,7 @@ def get_momentum(stock_list, date, market_cap_on_current_day):
 
     # 把复利无风险日收益率转为日收益率
 
-    compounded_risk_free_return = rqdatac.get_yield_curve(start_date=trading_date_505_before, end_date=date, tenor='0S')
+    compounded_risk_free_return = rqdatac.get_yield_curve(start_date=trading_date_525_before, end_date=date, tenor='0S')
 
     risk_free_return = (((1 + compounded_risk_free_return) ** (1 / 365)) - 1).loc[daily_return.index]
 
