@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d1e08ce0-9409-403a-8bc4-601026feb35f" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py" beforeDir="false" afterPath="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return_backup.py" beforeDir="false" afterPath="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return_backup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,8 +20,12 @@
       <file leaf-file-name="get_implicit_factor_return_backup.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return_backup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="473">
-              <caret line="190" lean-forward="true" selection-start-line="190" selection-end-line="190" />
+            <state relative-caret-position="315">
+              <caret line="48" lean-forward="true" selection-start-line="48" selection-end-line="48" />
+              <folding>
+                <element signature="e#261#1324#0" />
+                <element signature="e#2975#3861#0" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -55,19 +58,18 @@
         <option value="$PROJECT_DIR$/factor_exposure/get_stock_beta.py" />
         <option value="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" />
         <option value="$PROJECT_DIR$/factor_exposure/get_momentun_and_resvol.py" />
-        <option value="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py" />
         <option value="$PROJECT_DIR$/implicit_factor_return/explicit_return.py" />
         <option value="$PROJECT_DIR$/factor_exposure/data_comparison.py" />
         <option value="$PROJECT_DIR$/factor_exposure/operators.py" />
         <option value="$PROJECT_DIR$/factor_exposure/get_style_factors.py" />
+        <option value="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py" />
         <option value="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return_backup.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" fullScreen="true">
-    <option name="y" value="23" />
     <option name="width" value="1920" />
-    <option name="height" value="1057" />
+    <option name="height" value="1080" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -145,7 +147,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1920" height="1080" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4991274" visible="true" weight="0.18423855" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32935324" />
@@ -194,17 +195,10 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="17" />
+      <option name="time" value="19" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/factor_exposure/atomic_descriptors.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="70" selection-start-line="2" selection-start-column="70" selection-end-line="2" selection-end-column="70" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/get_style_factors.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
@@ -480,13 +474,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4410">
-          <caret line="300" column="80" selection-start-line="300" selection-start-column="80" selection-end-line="300" selection-end-column="80" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/implicit_factor_return/explicit_return.py" />
     <entry file="file://$PROJECT_DIR$/factor_exposure/atomic_descriptors.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -542,10 +529,31 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/implicit_factor_return/pure_factor_returns.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-189">
+          <caret line="38" column="24" selection-start-line="38" selection-start-column="24" selection-end-line="38" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-525">
+          <caret line="252" lean-forward="true" selection-start-line="252" selection-end-line="252" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return_backup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="473">
-          <caret line="190" lean-forward="true" selection-start-line="190" selection-end-line="190" />
+        <state relative-caret-position="315">
+          <caret line="48" lean-forward="true" selection-start-line="48" selection-end-line="48" />
+          <folding>
+            <element signature="e#261#1324#0" />
+            <element signature="e#2975#3861#0" />
+          </folding>
         </state>
       </provider>
     </entry>

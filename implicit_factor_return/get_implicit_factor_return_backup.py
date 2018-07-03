@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import rqdatac
 
-rqdatac.init('rice', 'rice', ('192.168.10.64', 16008))
+rqdatac.init('rice', 'rice', ('192.168.10.64', 16009))
 
 
 def get_shenwan_industry_exposure(stock_list, date):
@@ -79,7 +79,7 @@ def factor_return_estimation(stock_list, date, factor_exposure):
 
     # 计算无风险日收益率
 
-    daily_return = rqdatac.get_price(order_book_ids=stock_list, start_date=previous_trading_date, end_date=latest_trading_date, fields='close').pct_change()[-1:].T
+    daily_return = rqdatac.get_price(order_book_ids=factor_exposure.index.tolist(), start_date=previous_trading_date, end_date=latest_trading_date, fields='close').pct_change()[-1:].T
 
     compounded_risk_free_return = rqdatac.get_yield_curve(start_date=latest_trading_date, end_date=latest_trading_date, tenor='3M')['3M']
 
@@ -89,13 +89,19 @@ def factor_return_estimation(stock_list, date, factor_exposure):
 
     # 以市场平方根作为加权最小二乘法的加权系数
 
-    market_cap = rqdatac.get_factor(id_or_symbols = stock_list, factor = 'a_share_market_val', start_date = previous_trading_date, end_date = previous_trading_date)
+    market_cap = rqdatac.get_factor(id_or_symbols = factor_exposure.index.tolist(), factor = 'a_share_market_val', start_date = previous_trading_date, end_date = previous_trading_date)
+
+    if market_cap.isnull().sum() >= 30:
+
+        raise ValueError('市值出现大量缺失！')
+    else:
+        market_cap = market_cap.dropna()
 
     normalized_regression_weight = market_cap.pow(0.5)/market_cap.pow(0.5).sum()
 
     # 各行业市值之和，用于行业收益率约束条件
 
-    if date > '2014-01-01':
+    if str(previous_trading_date) > '2014-01-01':
 
         industry_factors = ['农林牧渔', '采掘', '化工', '钢铁', '有色金属', '电子', '家用电器', '食品饮料', '纺织服装', '轻工制造',\
                             '医药生物', '公用事业', '交通运输', '房地产', '商业贸易', '休闲服务','综合', '建筑材料',  '建筑装饰', '电气设备',\
@@ -106,17 +112,20 @@ def factor_return_estimation(stock_list, date, factor_exposure):
                             '交运设备', '食品饮料', '电子', '信息设备', '交通运输', '轻工制造', '公用事业', '机械设备',
                             '纺织服装', '农林牧渔', '商业贸易', '化工', '信息服务', '采掘', '黑色金属']
 
-    industry_total_market_cap = market_cap.loc[factor_exposure.index].dot(factor_exposure[industry_factors] )
+    industry_total_market_cap = market_cap.dot(factor_exposure.loc[market_cap.index][industry_factors])
 
     factor_return_series = pd.DataFrame()
 
     # 对10个风格因子不添加约束，对 GICS 32个行业添加约束
 
-    factor_return_series['whole_market'] = constrainted_weighted_least_square(Y = daily_excess_return[factor_exposure.index].values[0], X = factor_exposure, weight = normalized_regression_weight[factor_exposure.index],\
+    factor_return_series['whole_market'] = constrainted_weighted_least_square(Y = daily_excess_return[market_cap.index].values[0], X = factor_exposure.loc[market_cap.index], weight = normalized_regression_weight,\
                                                                      industry_total_market_cap = industry_total_market_cap, unconstrained_variables = 10, constrained_variables = len(industry_total_market_cap))
+
     ### 沪深300
 
-    csi_300_components = rqdatac.index_components(index_name = '000300.XSHG', date = previous_trading_date)
+    csi_300_components = rqdatac.index_components(index_name='000300.XSHG', date=previous_trading_date)
+
+    csi_300_components = list(set(market_cap.index.tolist()).intersection(set(csi_300_components)))
 
     # 各行业市值之和，用于行业收益率约束条件
 
@@ -136,6 +145,8 @@ def factor_return_estimation(stock_list, date, factor_exposure):
 
     csi_500_components = rqdatac.index_components(index_name = '000905.XSHG', date = previous_trading_date)
 
+    csi_500_components = list(set(market_cap.index.tolist()).intersection(set(csi_500_components)))
+
     csi_500_industry_total_market_cap = market_cap[csi_500_components].dot(factor_exposure[industry_factors].loc[csi_500_components])
 
     missing_industry = csi_500_industry_total_market_cap[csi_500_industry_total_market_cap < 100].index
@@ -149,6 +160,8 @@ def factor_return_estimation(stock_list, date, factor_exposure):
     ### 中证800
 
     csi_800_components = rqdatac.index_components(index_name = '000906.XSHG', date = previous_trading_date)
+
+    csi_800_components = list(set(market_cap.index.tolist()).intersection(set(csi_800_components)))
 
     csi_800_industry_total_market_cap = market_cap[csi_800_components].dot(factor_exposure[industry_factors].loc[csi_800_components])
 
@@ -183,3 +196,8 @@ def get_implicit_factor_return(date):
     factor_returns = factor_return_estimation(stock_list, date, factor_exposure)
 
     return factor_returns
+
+
+date = '2014-01-02'
+
+factor_returns = get_implicit_factor_return(date)
