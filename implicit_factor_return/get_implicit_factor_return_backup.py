@@ -6,28 +6,12 @@ from datetime import timedelta
 
 import rqdatac
 
-rqdatac.init('rice', 'rice', ('192.168.10.64', 16009))
+rqdatac.init('rice', 'rice', ('192.168.10.64', 16008))
 
 
 def get_shenwan_industry_exposure(stock_list, date):
 
     industry_classification = rqdatac.shenwan_instrument_industry(stock_list, date)
-
-    industry_classification_missing_stocks = list(set(stock_list) - set(industry_classification.index.tolist()))
-
-    # 当传入股票过多时，对于缺失行业标记的股票，RQD 目前不会向前搜索，因此需要循环单个传入查找这些股票的行业标记
-
-    if len(industry_classification_missing_stocks) != 0:
-
-        print(date, 'industry_classification_missing_stocks', industry_classification_missing_stocks)
-
-        for stock in industry_classification_missing_stocks:
-
-            missing_industry_classification = rqdatac.shenwan_instrument_industry(stock, date)
-
-            if missing_industry_classification != None:
-
-                industry_classification = industry_classification.append(pd.Series([missing_industry_classification[0], missing_industry_classification[1]], index=['index_code','index_name'], name = stock))
 
     if date > '2014-01-01':
 
@@ -40,23 +24,11 @@ def get_shenwan_industry_exposure(stock_list, date):
                                  '交运设备', '食品饮料', '电子', '信息设备', '交通运输', '轻工制造', '公用事业', '机械设备',
                                  '纺织服装', '农林牧渔', '商业贸易', '化工', '信息服务', '采掘', '黑色金属']
 
-    # 在 stock_list 中仅有一个股票的情况下，返回格式为 tuple
+    industry_exposure_df = pd.DataFrame(0, index = industry_classification.index, columns = shenwan_industry_name)
 
-    if isinstance(industry_classification, tuple):
+    for industry in shenwan_industry_name:
 
-        industry_name = industry_classification[1]
-
-        industry_exposure_df = pd.DataFrame(0, index = shenwan_industry_name, columns = stock_list).T
-
-        industry_exposure_df[industry_name] = 1
-
-    else:
-
-        industry_exposure_df = pd.DataFrame(0, index = industry_classification.index, columns = shenwan_industry_name)
-
-        for industry in shenwan_industry_name:
-
-            industry_exposure_df.loc[industry_classification[industry_classification['index_name'] == industry].index, industry] = 1
+        industry_exposure_df.loc[industry_classification[industry_classification['index_name'] == industry].index, industry] = 1
 
     return industry_exposure_df.index.tolist(), industry_exposure_df
 
@@ -65,7 +37,7 @@ def get_exposure(stock_list,date):
 
     non_missing_stock_list,industry_exposure = get_shenwan_industry_exposure(stock_list, date)
 
-    style_exposure = rqdatac.get_style_factor_exposure(stock_list, date, date, factors = 'all')
+    style_exposure = rqdatac.get_style_factor_exposure(non_missing_stock_list, date, date, factors = 'all')
 
     style_exposure.index = style_exposure.index.droplevel('date')
 
@@ -117,7 +89,7 @@ def factor_return_estimation(stock_list, date, factor_exposure):
 
     # 以市场平方根作为加权最小二乘法的加权系数
 
-    market_cap = rqdatac.get_factor(id_or_symbols = stock_list, factor = 'a_share_market_val', start_date = latest_trading_date, end_date = latest_trading_date)
+    market_cap = rqdatac.get_factor(id_or_symbols = stock_list, factor = 'a_share_market_val', start_date = previous_trading_date, end_date = previous_trading_date)
 
     normalized_regression_weight = market_cap.pow(0.5)/market_cap.pow(0.5).sum()
 

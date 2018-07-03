@@ -8,7 +8,7 @@ import rqdatac
 
 #rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
 
-rqdatac.init('rice','rice',('192.168.10.64',16008))
+rqdatac.init('rice','rice',('192.168.10.64',16009))
 
 
 def get_shenwan_industry_exposure(stock_list, date):
@@ -64,6 +64,7 @@ def get_shenwan_industry_exposure(stock_list, date):
 
 
 def get_gics_exposure(stock_list,date):
+    rqdatac.init('rice', 'rice', ('192.168.10.64', 16008))
 
     industry_factors = ['CNE5S_ENERGY', 'CNE5S_CHEM', 'CNE5S_CONMAT', 'CNE5S_MTLMIN', 'CNE5S_MATERIAL', 'CNE5S_AERODEF',
                         'CNE5S_BLDPROD', 'CNE5S_CNSTENG', 'CNE5S_ELECEQP', 'CNE5S_INDCONG', 'CNE5S_MACH',
@@ -91,6 +92,8 @@ def get_style_exposure(stock_list, date):
 
 
 def get_barra_exposure(stock_list, date):
+
+    rqdatac.init('rice', 'rice', ('192.168.10.64', 16008))
 
     style_factors = ['CNE5S_BETA', 'CNE5S_MOMENTUM', 'CNE5S_SIZE', 'CNE5S_EARNYILD', 'CNE5S_RESVOL', 'CNE5S_GROWTH',
                      'CNE5S_BTOP', 'CNE5S_LEVERAGE', 'CNE5S_LIQUIDTY', 'CNE5S_SIZENL']
@@ -166,7 +169,7 @@ def factor_return_estimation(stock_list, date, factor_exposure,industry_factors)
 
     # 计算无风险日收益率
 
-    daily_return = rqdatac.get_price(order_book_ids=stock_list, start_date=previous_trading_date, end_date=latest_trading_date, fields='close').pct_change()[-1:].T
+    daily_return = rqdatac.get_price(order_book_ids=stock_list, start_date=previous_trading_date, end_date=previous_trading_date, fields='close').pct_change()[-1:].T
 
     compounded_risk_free_return = rqdatac.get_yield_curve(start_date=latest_trading_date, end_date=latest_trading_date, tenor='3M')['3M']
 
@@ -281,12 +284,18 @@ def get_implicit_factor_return(date):
     return rq_factor_returns,rq_style_barra_industry_factor_returns,barra_factor_returns,barra_style_rq_industry_factor_returns
 
 
-test_trading_dates = ['2017-01-17','2017-02-07','2017-03-13','2017-04-10','2017-05-18','2017-06-08','2017-07-18','2017-08-01']
-
-correlation = pd.DataFrame(index=test_trading_dates,columns=['r_correlation','rsbi_correlation','b_correlation','bsri_correlation'])
+test_trading_dates = rqdatac.get_trading_dates('2017-02-03','2017-07-07')
 
 barra_style_factors = ['CNE5S_BETA', 'CNE5S_MOMENTUM', 'CNE5S_SIZE', 'CNE5S_EARNYILD', 'CNE5S_RESVOL', 'CNE5S_GROWTH',
                  'CNE5S_BTOP', 'CNE5S_LEVERAGE', 'CNE5S_LIQUIDTY', 'CNE5S_SIZENL']
+
+rqreturns = pd.DataFrame(index=test_trading_dates,columns=barra_style_factors)
+
+rsbireturns = pd.DataFrame(index=test_trading_dates,columns=barra_style_factors)
+
+breturns = pd.DataFrame(index=test_trading_dates,columns=barra_style_factors)
+
+bsrireturns = pd.DataFrame(index=test_trading_dates,columns=barra_style_factors)
 
 rq_style_factors = ['beta', 'momentum', 'size', 'earnings_yield', 'residual_volatility', 'growth',
                     'book_to_price', 'leverage', 'liquidity', 'non_linear_size']
@@ -297,14 +306,13 @@ for dates in test_trading_dates:
 
     factor_returns = rqdatac.barra.get_factor_return(dates, dates, barra_style_factors).T[dates]
 
-    correlation['r_correlation'].loc[dates] = rq_factor_returns['whole_market'].loc[barra_style_factors].corr(factor_returns)
+    rqreturns.loc[dates] = rq_factor_returns
 
-    correlation['rsbi_correlation'].loc[dates] = rq_style_barra_industry_factor_returns['whole_market'].loc[barra_style_factors].corr(factor_returns)
+    rsbireturns.loc[dates] = rq_style_barra_industry_factor_returns
 
-    correlation['b_correlation'].loc[dates] = barra_factor_returns['whole_market'].loc[barra_style_factors].corr(factor_returns)
+    breturns.loc[dates] = barra_factor_returns
 
-    correlation['bsri_correlation'].loc[dates] = barra_style_rq_industry_factor_returns['whole_market'].loc[barra_style_factors].corr(factor_returns)
-
+    bsrireturns.loc[dates] = barra_style_rq_industry_factor_returns
 
 
 
