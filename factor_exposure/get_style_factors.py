@@ -219,9 +219,6 @@ def get_non_linear_size(size_exposure, market_cap_on_current_day):
     return processed_orthogonalized_cubed_size
 
 
-date = '2017-06-11'
-
-
 def get_style_factors(date):
 
     latest_trading_date = rqdatac.get_previous_trading_date(datetime.strptime(date, "%Y-%m-%d") + timedelta(days=1))

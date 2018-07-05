@@ -2,8 +2,9 @@ import sys
 
 sys.path.append("/Users/rice/Documents/cne5_factors/factor_exposure/")
 
-from intermediate_variables import *
 from operators import *
+from intermediate_variables import *
+
 
 import numpy as np
 import pandas as pd

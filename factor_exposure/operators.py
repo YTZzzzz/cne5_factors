@@ -88,6 +88,28 @@ def atomic_descriptors_imputation_and_combination(atomic_descriptors_df, atom_de
     return style_factor
 
 
+
+def get_shenwan_industry_label(stock_list, date):
+
+    industry_classification = rqdatac.shenwan_instrument_industry(stock_list, date)
+
+    industry_classification_missing_stocks = list(set(stock_list) - set(industry_classification.index.tolist()))
+
+    # 当传入股票过多时，对于缺失行业标记的股票，RQD 目前不会向前搜索，因此需要循环单个传入查找这些股票的行业标记
+
+    if len(industry_classification_missing_stocks) != 0:
+
+        for stock in industry_classification_missing_stocks:
+
+            missing_industry_classification = rqdatac.shenwan_instrument_industry(stock, date)
+
+            if missing_industry_classification != None:
+
+                industry_classification = industry_classification.append(pd.Series([missing_industry_classification[0], missing_industry_classification[1]], index=['index_code','index_name'], name = stock))
+
+    return industry_classification['index_name']
+
+
 def style_factors_imputation(style_factors_exposure, market_cap_on_current_day, date):
 
     import statsmodels.api as st

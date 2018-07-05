@@ -3,8 +3,9 @@ import pandas as pd
 from datetime import datetime
 from datetime import timedelta
 from sklearn import linear_model
-from intermediate_variables import *
 from operators import individual_factor_imputation
+from intermediate_variables import *
+
 
 import rqdatac
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))

@@ -13,7 +13,7 @@ import rqdatac
 
 #rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
 
-rqdatac.init('rice','rice',('192.168.10.64',16008))
+rqdatac.init('rice','rice',('192.168.10.64',16009))
 
 
 def get_style_exposure(stock_list, date):
@@ -283,63 +283,65 @@ print('tail', merged_size_exposure.tail())
 
 # 测试相关性
 
-start_date = '2017-01-03'
+start_date = '2008-02-01'
 
-date = '2017-04-24'
+date = '2018-06-24'
+
+tradings_date = rqdatac.get_trading_dates(start_date,date,country='cn')
+trading_dates=[]
+
+for i in range(1,len(tradings_date),63):
+    trading_dates.append(tradings_date[i])
 
 stock_list = rqdatac.all_instruments(type='CS', date=date)['order_book_id'].values.tolist()
 
-style_exposure = rqdatac.barra.get_style_factor_exposure(stock_list,start_date,date)
+style_factors = ['beta', 'momentum', 'size', 'earnings_yield', 'residual_volatility', 'growth',
+                                  'book_to_price', 'leverage', 'liquidity', 'non_linear_size']
 
-tradings_date = rqdatac.get_trading_dates(start_date,date,country='cn')
+descriptors_exposure = ['daily_standard_deviation', 'cumulative_range', 'historical_sigma',
+                                       'one_month_share_turnover', 'three_months_share_turnover',
+                                       'twelve_months_share_turnover', \
+                                       'earnings_to_price_ratio', 'cash_earnings_to_price_ratio', 'market_leverage',
+                                       'debt_to_assets', 'book_leverage', 'sales_growth', 'earnings_growth']
 
-beta_correlation = pd.Series(index=tradings_date)
-momentum_correlation = pd.Series(index=tradings_date)
-size_correlation = pd.Series(index=tradings_date)
-resvol_correlation = pd.Series(index=tradings_date)
-growth_correlation = pd.Series(index=tradings_date)
-book_to_price_correlation = pd.Series(index=tradings_date)
-leverage_correlation = pd.Series(index=tradings_date)
-liquidity_correlation = pd.Series(index=tradings_date)
-non_linear_size_correlation = pd.Series(index=tradings_date)
+benchmark_list = ['000016.XSHG', '000300.XSHG', '000905.XSHG', '000906.XSHG', '000985.XSHG']
 
-earnings_yield_correlation = pd.Series(index=tradings_date)
+style_exposure_corr = pd.DataFrame(index=style_factors,columns=trading_dates[1:])
 
-for dates in tradings_date:
-    
-    component_exposure_of_a_day = style_exposure.xs(dates, level=1, drop_level=True)
+descriptors_corr = pd.DataFrame(index=descriptors_exposure,columns=trading_dates[1:])
 
-    barra_style_factor_exposure = get_barra_style_exposure(str(dates))
+beta_correlation = pd.DataFrame(index=benchmark_list,columns=trading_dates[1:])
 
-    earnings_yield_correlation.loc[dates]  = pd.concat([component_exposure_of_a_day['earnings_yield'].astype(np.float),
-                                                    barra_style_factor_exposure['CNE5S_EARNYILD']], axis=1).corr()['earnings_yield'][1]
 
-    beta_correlation.loc[dates] = pd.concat(
-        [component_exposure_of_a_day['beta'], barra_style_factor_exposure['CNE5S_BETA']], axis=1).corr()['beta'][1]
+for dates in trading_dates[1:]:
 
-    momentum_correlation.loc[dates]  = pd.concat(
-        [component_exposure_of_a_day['momentum'], barra_style_factor_exposure['CNE5S_MOMENTUM']], axis=1).corr()['momentum'][1]
+    stock_list = rqdatac.all_instruments(type='CS', date=dates)['order_book_id'].values.tolist()
 
-    size_correlation.loc[dates]  = pd.concat(
-        [component_exposure_of_a_day['size'], barra_style_factor_exposure['CNE5S_SIZE']], axis=1).corr()['size'][1]
+    style_exposure = rqdatac.get_style_factor_exposure(stock_list, dates, dates)
+    style_exposure.index = style_exposure.index.droplevel('date')
 
-    resvol_correlation.loc[dates]  = pd.concat(
-        [component_exposure_of_a_day['residual_volatility'], barra_style_factor_exposure['CNE5S_RESVOL']],
-        axis=1).corr()['residual_volatility'][1]
+    descriptors_exposure = rqdatac.get_descriptor_exposure(stock_list,dates,dates)
+    descriptors_exposure.index = descriptors_exposure.index.droplevel('date')
 
-    growth_correlation.loc[dates]  = pd.concat(
-        [component_exposure_of_a_day['growth'], barra_style_factor_exposure['CNE5S_GROWTH']], axis=1).corr()['growth'][1]
+    stock_beta300 = rqdatac.get_stock_beta(stock_list,dates,dates).T[dates]
 
-    book_to_price_correlation.loc[dates]  = pd.concat(
-        [component_exposure_of_a_day['book_to_price'].astype(np.float), barra_style_factor_exposure['CNE5S_BTOP']],
-        axis=1).corr()['book_to_price'][1]
+    stock_beta50 = rqdatac.get_stock_beta(stock_list,dates,dates,'000016.XSHG').T[dates]
 
-    leverage_correlation.loc[dates]  = pd.concat(
-        [component_exposure_of_a_day['leverage'], barra_style_factor_exposure['CNE5S_LEVERAGE']], axis=1).corr()['leverage'][1]
+    stock_beta500 = rqdatac.get_stock_beta(stock_list,dates,dates,'000905.XSHG').T[dates]
 
-    liquidity_correlation.loc[dates]  = pd.concat(
-        [component_exposure_of_a_day['liquidity'], barra_style_factor_exposure['CNE5S_LIQUIDTY']], axis=1).corr()['liquidity'][1]
+    stock_beta800 = rqdatac.get_stock_beta(stock_list,dates,dates,'000906.XSHG').T[dates]
 
-    non_linear_size_correlation.loc[dates]  = pd.concat(
-        [component_exposure_of_a_day['non_linear_size'], barra_style_factor_exposure['CNE5S_SIZENL']], axis=1).corr()['non_linear_size'][1]
+    stock_beta_total = rqdatac.get_stock_beta(stock_list,dates,dates,'000985.XSHG').T[dates]
+
+    stock_beta1 = pd.concat([stock_beta50,stock_beta300,stock_beta500,stock_beta800,stock_beta_total],axis=1)
+
+    stock_beta1.columns= ['000016.XSHG', '000300.XSHG', '000905.XSHG', '000906.XSHG', '000985.XSHG']
+
+    imputed_atomic_descriptors, imputed_style_factors_exposure, stock_beta = get_style_factors(str(dates))
+
+    style_exposure_corr[dates] = imputed_style_factors_exposure.astype(np.float).corrwith(style_exposure.astype(np.float))
+
+    descriptors_corr[dates] = imputed_atomic_descriptors.astype(np.float).corrwith(descriptors_exposure.astype(np.float))
+
+    beta_correlation[dates] = stock_beta1.astype(np.float).corrwith(stock_beta.astype(np.float))
 
