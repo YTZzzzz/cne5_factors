@@ -93,19 +93,15 @@ def customized_factor_return_estimation(date, factor_exposure,stock_list):
 
     market_cap = rqdatac.get_factor(id_or_symbols = factor_exposure.index.tolist(), factor = 'a_share_market_val', start_date = previous_trading_date, end_date = previous_trading_date)
 
-    if market_cap.isnull().sum() >= 30:
+    missing_market_cap_stock = market_cap[market_cap.isnull()==True].index.tolist()
 
-        market_cap_df = rqdatac.get_fundamentals(rqdatac.query(rqdatac.fundamentals.eod_derivative_indicator.a_share_market_val),entry_date=previous_trading_date,interval='1d').major_xs(previous_trading_date)['a_share_market_val'].loc[factor_exposure.index]
+    if len(missing_market_cap_stock) > 0:
 
-        if market_cap_df.isnull().sum() >= 30:
+        price = rqdatac.get_price(missing_market_cap_stock,previous_trading_date,previous_trading_date,fields='close',frequency='1d').T
 
-            raise ValueError('市值出现大量缺失')
+        shares = rqdatac.get_shares(missing_market_cap_stock,previous_trading_date,previous_trading_date,fields='total_a').T
 
-        else:
-
-            market_cap = market_cap_df
-    else:
-        market_cap = market_cap.dropna()
+        market_cap[market_cap.isnull() == True] = (price * shares)[previous_trading_date]
 
     normalized_regression_weight = market_cap.pow(0.5)/market_cap.pow(0.5).sum()
 

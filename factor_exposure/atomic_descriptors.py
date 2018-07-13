@@ -13,6 +13,7 @@ from datetime import timedelta
 
 
 import rqdatac
+
 rqdatac.init("ricequant", "Ricequant123", ('rqdatad-pro.ricequant.com', 16004))
 
 

@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import rqdatac
 
-rqdatac.init('rice', 'rice', ('192.168.10.64', 16008))
+rqdatac.init('rice', 'rice', ('192.168.10.64', 16030))
 
 
 def get_shenwan_industry_exposure(stock_list, date):
@@ -91,19 +91,29 @@ def factor_return_estimation(date, factor_exposure):
 
     market_cap = rqdatac.get_factor(id_or_symbols = factor_exposure.index.tolist(), factor = 'a_share_market_val', start_date = previous_trading_date, end_date = previous_trading_date)
 
-    if market_cap.isnull().sum() >= 30:
+    missing_market_cap_stock = market_cap[market_cap.isnull()==True].index.tolist()
 
-        market_cap_df = rqdatac.get_fundamentals(rqdatac.query(rqdatac.fundamentals.eod_derivative_indicator.a_share_market_val),entry_date=previous_trading_date,interval='1d').major_xs(previous_trading_date)['a_share_market_val'].loc[factor_exposure.index]
+    if len(missing_market_cap_stock) > 0:
 
-        if market_cap_df.isnull().sum() >= 30:
+        price = rqdatac.get_price(missing_market_cap_stock,previous_trading_date,previous_trading_date,fields='close',frequency='1d').T
 
-            raise ValueError('市值出现大量缺失')
+        shares = rqdatac.get_shares(missing_market_cap_stock,previous_trading_date,previous_trading_date,fields='total_a').T
 
-        else:
+        market_cap[market_cap.isnull() == True] = (price * shares)[previous_trading_date]
 
-            market_cap = market_cap_df
-    else:
-        market_cap = market_cap.dropna()
+#    if market_cap.isnull().sum() >= 30:
+
+ #       market_cap_df = rqdatac.get_fundamentals(rqdatac.query(rqdatac.fundamentals.eod_derivative_indicator.a_share_market_val),entry_date=previous_trading_date,interval='1d').major_xs(previous_trading_date)['a_share_market_val'].loc[factor_exposure.index]
+
+#        if market_cap_df.isnull().sum() >= 30:
+
+ #           raise ValueError('市值出现大量缺失')
+
+  #      else:
+
+   #         market_cap = market_cap_df
+    #else:
+     #   market_cap = market_cap.dropna()
 
     normalized_regression_weight = market_cap.pow(0.5)/market_cap.pow(0.5).sum()
 
@@ -195,6 +205,10 @@ def get_implicit_factor_return(date):
 
     stock_list = rqdatac.all_instruments(type='CS', date=previous_trading_date)['order_book_id'].values.tolist()
 
+    trading_volume = rqdatac.get_price(stock_list, start_date=date, end_date=date, frequency='1d', fields='volume',country='cn')
+
+    stock_list = trading_volume.loc[date][trading_volume.loc[date].values > 0].index.tolist()
+
     # 计算全市场前一交易日的行业暴露度
 
     factor_exposure = get_exposure(stock_list,str(previous_trading_date))
@@ -206,4 +220,6 @@ def get_implicit_factor_return(date):
     return factor_returns
 
 
+date = '2010-03-03'
 
+factor_returns = get_implicit_factor_return(date)
