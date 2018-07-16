@@ -88,7 +88,6 @@ def atomic_descriptors_imputation_and_combination(atomic_descriptors_df, atom_de
     return style_factor
 
 
-
 def get_shenwan_industry_label(stock_list, date):
 
     industry_classification = rqdatac.shenwan_instrument_industry(stock_list, date)

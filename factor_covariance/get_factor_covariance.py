@@ -114,33 +114,25 @@ def get_exponential_weight(half_life, length):
 
 def Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all_factors, parameters):
 
-    # 计算经验协方差矩阵，同时进行年化处理（乘以 252）
-
-    #empirical_factor_covariance = current_factor_return.cov().stack() * 252
-
-    #empirical_factor_covariance.index.names = ['factor', '_factor']
-
-    #reformatted_empirical_factor_covariance = empirical_factor_covariance.reset_index()
-
     volatility_exp_weight = get_exponential_weight(parameters['volatility_half_life'], parameters['factor_return_length'])
 
     correlation_exp_weight = get_exponential_weight(parameters['correlation_half_life'], parameters['factor_return_length'])
 
     demeaned_current_factor_return = current_factor_return - current_factor_return.mean()
 
-    exp_weighted_cov = pd.DataFrame(index=all_factors,columns=all_factors)
+    estimated_lag_cov = pd.DataFrame(index=all_factors, columns=all_factors)
 
-    exp_weighted_var = pd.DataFrame(index=all_factors,columns=all_factors)
+    estimated_lag_var = pd.DataFrame(index=all_factors, columns=all_factors)
 
-    estimated_cov = pd.DataFrame(index=all_factors,columns=all_factors)
+    estimated_cov = pd.DataFrame(index=all_factors, columns=all_factors)
 
-    estimated_var = pd.DataFrame(index=all_factors,columns=all_factors,data=0)
+    estimated_var = pd.DataFrame(index=all_factors, columns=all_factors, data=0)
 
-    intermediate_cov = pd.DataFrame(index=all_factors,columns=all_factors,data=0)
+    intermediate_cov = pd.DataFrame(index=all_factors, columns=all_factors, data=0)
 
-    intermediate_var = pd.DataFrame(index=all_factors,columns=all_factors,data=0)
+    intermediate_var = pd.DataFrame(index=all_factors, columns=all_factors, data=0)
 
-    # 计算协方差估计矩阵
+    # 计算协方差和方差估计矩阵
 
     for factor in all_factors:
 
@@ -148,9 +140,9 @@ def Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all
 
             estimated_cov[factor].loc[factors] = correlation_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_current_factor_return[factors].values) / correlation_exp_weight.sum()
 
-            if factor == factors:
+            estimated_var[factor].loc[factors] = volatility_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_current_factor_return[factors].values) / volatility_exp_weight.sum()
 
-                estimated_var[factor].loc[factors] = volatility_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_current_factor_return[factors].values) / volatility_exp_weight.sum()
+    # 计算协方差和方差在不同滞后长度下的协方差和方差矩阵
 
     for lag in range(1, 6):
 
@@ -160,23 +152,21 @@ def Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all
 
             for factors in all_factors:
 
-                exp_weighted_cov[factor].loc[factors] = correlation_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_lag_factor_return[factors].values) / correlation_exp_weight.sum()
+                estimated_lag_cov[factor].loc[factors] = correlation_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_lag_factor_return[factors].values) / correlation_exp_weight.sum()
 
-                if factor == factors:
-
-                    exp_weighted_var[factor].loc[factors] = volatility_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_lag_factor_return[factors].values) / volatility_exp_weight.sum()
+                estimated_lag_var[factor].loc[factors] = volatility_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_lag_factor_return[factors].values) / volatility_exp_weight.sum()
 
         if lag <= parameters['NeweyWest_correlation_lags']:
 
-            intermediate_cov = intermediate_cov + (1 - lag / (1 + parameters.get('NeweyWest_correlation_lags'))) * (exp_weighted_cov + exp_weighted_cov.T)
+            intermediate_cov = intermediate_cov + (1 - lag / (1 + parameters.get('NeweyWest_correlation_lags'))) * (estimated_lag_cov + estimated_lag_cov.T)
 
-        intermediate_var = intermediate_var + (1-lag/(1+parameters.get('NeweyWest_volatility_lags')))*(exp_weighted_var + exp_weighted_var.T).replace(np.nan,0)
+        intermediate_var = intermediate_var + (1 - lag / (1 + parameters.get('NeweyWest_volatility_lags'))) * (estimated_lag_var + estimated_lag_var.T).replace(np.nan,0)
 
     Newey_West_adjustment_cov = 252 * (estimated_cov + intermediate_cov)
 
     Newey_West_adjustment_var = 252 * (estimated_var + intermediate_var)
 
-    # 计算该步骤调整风险矩阵各项 volatility和相关系数
+    # 计算调整风险矩阵各项 volatility和相关系数
 
     correlation_matrix = pd.DataFrame(index=all_factors,columns=all_factors)
 
@@ -194,12 +184,12 @@ def Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all
 
             adjusted_covariance[factor][factors] = correlation_matrix[factor].loc[factors] * factor_volitality.loc[factor] * factor_volitality.loc[factors]
 
-    return adjusted_covariance,factor_volitality,correlation_matrix
+    return adjusted_covariance,factor_volitality,correlation_matrix,estimated_cov
 
 
-def eigenfactor_risk_adjustment(Newey_West_adjustment_cov,factor_volitality,all_factors):
+def eigenfactor_risk_adjustment(Newey_West_adjustment_cov,factor_volitality,all_factors,estimated_cov):
 
-    eigen_value,eigen_vector = np.linalg.eig(Newey_West_adjustment_cov.astype(np.float))
+    eigen_value, eigen_vector = np.linalg.eig(Newey_West_adjustment_cov.astype(np.float))
 
     eigen_value_matrix = pd.DataFrame(index=Newey_West_adjustment_cov.index, columns=Newey_West_adjustment_cov.index,data=np.diag(eigen_value.reshape(1, len(Newey_West_adjustment_cov.index))[0]))
 
@@ -223,7 +213,7 @@ def eigenfactor_risk_adjustment(Newey_West_adjustment_cov,factor_volitality,all_
 
         eigen_value_m_matrix = pd.DataFrame(index=monte_caro_cov.index,columns=monte_caro_cov.index,data=np.diag(eigen_value_m.reshape(1, len(monte_caro_cov.index))[0]))
 
-        eigen_value_adjust, eigen_vector_adjust = np.linalg.eig((monte_caro_cov+Newey_West_adjustment_cov).astype(np.float))
+        eigen_value_adjust, eigen_vector_adjust = np.linalg.eig((monte_caro_cov+estimated_cov).astype(np.float))
 
         eigen_value_adjust_matrix = pd.DataFrame(index=monte_caro_cov.index,columns=monte_caro_cov.index,data=np.diag(eigen_value_adjust.reshape(1, len(monte_caro_cov.index))[0]))
 
@@ -299,8 +289,6 @@ def get_factor_covariance(date, parameters):
     return volatility_regime_adjustment_cov
 
 
-
-
 date = '2018-02-02'
 
 industry_factors = ['CNE5S_ENERGY', 'CNE5S_CHEM', 'CNE5S_CONMAT', 'CNE5S_MTLMIN', 'CNE5S_MATERIAL', 'CNE5S_AERODEF',
@@ -308,8 +296,7 @@ industry_factors = ['CNE5S_ENERGY', 'CNE5S_CHEM', 'CNE5S_CONMAT', 'CNE5S_MTLMIN'
                     'CNE5S_COMSERV', 'CNE5S_AIRLINE', 'CNE5S_MARINE', 'CNE5S_RDRLTRAN', 'CNE5S_AUTO', 'CNE5S_HOUSEDUR',
                     'CNE5S_LEISLUX', 'CNE5S_CONSSERV', 'CNE5S_MEDIA', 'CNE5S_RETAIL', 'CNE5S_PERSPRD', 'CNE5S_BEV',
                     'CNE5S_FOODPROD', 'CNE5S_HEALTH', 'CNE5S_BANKS', 'CNE5S_DVFININS', 'CNE5S_REALEST',
-                    'CNE5S_SOFTWARE',
-                    'CNE5S_HDWRSEMI', 'CNE5S_UTILITIE']
+                    'CNE5S_SOFTWARE','CNE5S_HDWRSEMI', 'CNE5S_UTILITIE']
 
 style_factors = ['CNE5S_BETA', 'CNE5S_MOMENTUM', 'CNE5S_SIZE', 'CNE5S_EARNYILD', 'CNE5S_RESVOL', 'CNE5S_GROWTH',
                  'CNE5S_BTOP', 'CNE5S_LEVERAGE', 'CNE5S_LIQUIDTY', 'CNE5S_SIZENL']
@@ -321,6 +308,7 @@ all_factors = industry_factors + style_factors + country_factor
 latest_trading_date = rqdatac.get_previous_trading_date((datetime.strptime(date, "%Y-%m-%d") + timedelta(days=1)))
 
 current_factor_return, multiperiod_factor_returns = get_multiperiod_factor_returns(all_factors, latest_trading_date,shortTermParameters)
+
 unadjusted_covariance_df = pd.DataFrame(index=all_factors,columns=all_factors)
 
 pre_volatility_covariance_df = pd.DataFrame(index=all_factors,columns=all_factors)
@@ -332,7 +320,7 @@ for factor in all_factors:
 
         value = unadjusted_covariance[(unadjusted_covariance['!Factor1']==factor) &(unadjusted_covariance['Factor2']==factors)]['VarCovar'].values
 
-        if len(value)==0:
+        if len(value) == 0:
             unadjusted_covariance_df.loc[factor][factors] = unadjusted_covariance[(unadjusted_covariance['!Factor1']==factors) &(unadjusted_covariance['Factor2']==factor)]['VarCovar'].values[0]
             pre_volatility_covariance_df.loc[factor][factors] = pre_volatilityRegimeAdjustment_covariance[(pre_volatilityRegimeAdjustment_covariance['!Factor1'] == factors) & (pre_volatilityRegimeAdjustment_covariance['Factor2'] == factor)]['VarCovar'].values[0]
             fully_processed_covariance_df.loc[factor][factors] = fully_processed_covariance[(fully_processed_covariance['!Factor1'] == factors) & (fully_processed_covariance['Factor2'] == factor)]['VarCovar'].values[0]
@@ -342,12 +330,20 @@ for factor in all_factors:
             fully_processed_covariance_df.loc[factor][factors] = fully_processed_covariance[(fully_processed_covariance['!Factor1'] == factor) & (fully_processed_covariance['Factor2'] == factors)]['VarCovar'].values[0]
 
 
-factor_volitality = pd.Series(data=np.sqrt(np.diag(unadjusted_covariance_df.astype(np.float))),index=unadjusted_covariance_df.index)
-#Newey_West_adjustment_cov, factor_volitality, correlation_matrix = Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all_factors, shortTermParameters)
+factor_volitality1 = pd.Series(data=np.sqrt(np.diag(unadjusted_covariance_df.astype(np.float))),index=unadjusted_covariance_df.index)
 
-eigenfactor_risk_adjustment_cov = eigenfactor_risk_adjustment(unadjusted_covariance_df, factor_volitality, all_factors)
+Newey_West_adjustment_cov, factor_volitality, correlation_matrix,estimated_cov = Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all_factors, shortTermParameters)
+
+eigenfactor_risk_adjustment_cov = eigenfactor_risk_adjustment(Newey_West_adjustment_cov, factor_volitality, all_factors,estimated_cov)
 
 volatility_regime_adjustment_cov = volatility_regime_adjustment(pre_volatility_covariance_df,current_factor_return,shortTermParameters)
+
+
+Newey_West_adjustment_cov = Newey_West_adjustment_cov.stack()
+
+Newey_West_adjustment_cov.index.names = ['factor', '_factor']
+
+Newey_West_adjustment_cov = Newey_West_adjustment_cov.reset_index()
 
 eigenfactor_risk_adjustment_cov = eigenfactor_risk_adjustment_cov.stack()
 

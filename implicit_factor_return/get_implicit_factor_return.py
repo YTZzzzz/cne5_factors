@@ -220,6 +220,6 @@ def get_implicit_factor_return(date):
     return factor_returns
 
 
-date = '2010-03-03'
+date = '2018-07-12'
 
 factor_returns = get_implicit_factor_return(date)
