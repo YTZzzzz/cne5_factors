@@ -130,9 +130,9 @@ def Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all
 
     estimated_lag_var = pd.DataFrame(index=all_factors, columns=all_factors)
 
-    estimated_cov = pd.DataFrame(index=all_factors, columns=all_factors)
+    exp_factors_return = pd.DataFrame()
 
-    estimated_var = pd.DataFrame(index=all_factors, columns=all_factors, data=0)
+    varexp_factors_return = pd.DataFrame()
 
     intermediate_cov = pd.DataFrame(index=all_factors, columns=all_factors, data=0)
 
@@ -142,11 +142,13 @@ def Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all
 
     for factor in all_factors:
 
-        for factors in all_factors:
+        exp_factors_return[factor] = np.sqrt(correlation_exp_weight) * demeaned_current_factor_return[factor] / correlation_exp_weight.sum()
 
-            estimated_cov[factor].loc[factors] = correlation_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_current_factor_return[factors].values) / correlation_exp_weight.sum()
+        varexp_factors_return[factor] = np.sqrt(volatility_exp_weight) * demeaned_current_factor_return[factor] / volatility_exp_weight.sum()
 
-            estimated_var[factor].loc[factors] = volatility_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_current_factor_return[factors].values) / volatility_exp_weight.sum()
+    estimated_cov = exp_factors_return.cov()
+
+    estimated_var = varexp_factors_return.cov()
 
     # 计算协方差和方差在不同滞后长度下的协方差和方差矩阵
 
@@ -156,11 +158,9 @@ def Newey_West_adjustment(current_factor_return, multiperiod_factor_returns, all
 
         for factor in all_factors:
 
-            for factors in all_factors:
+            estimated_lag_cov[factor] = np.sqrt(correlation_exp_weight).dot((exp_factors_return[factor].values * demeaned_lag_factor_return[factor]).values)
 
-                estimated_lag_cov[factor].loc[factors] = correlation_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_lag_factor_return[factors].values) / correlation_exp_weight.sum()
-
-                estimated_lag_var[factor].loc[factors] = volatility_exp_weight.dot(demeaned_current_factor_return[factor].values * demeaned_lag_factor_return[factors].values) / volatility_exp_weight.sum()
+            estimated_lag_var[factor] = np.sqrt(volatility_exp_weight).dot((varexp_factors_return[factor].values * demeaned_lag_factor_return[factor]).values)
 
         if lag <= parameters['NeweyWest_correlation_lags']:
 
@@ -201,11 +201,11 @@ def eigenfactor_risk_adjustment(Newey_West_adjustment_cov,factor_volitality,all_
 
     eigen_vector_matrix = pd.DataFrame(data=eigen_vector,index=Newey_West_adjustment_cov.index,columns=Newey_West_adjustment_cov.index)
 
-    monte_carol_times = 10000
+    monte_carlo_times = 10000
 
     intermediate_eigen_value = pd.DataFrame(data=0,index=all_factors,columns=all_factors)
 
-    for m in range(1,monte_carol_times):
+    for m in range(1,monte_carlo_times):
 
         monte_carlo_simulation = pd.DataFrame(columns=all_factors)
 
@@ -213,19 +213,19 @@ def eigenfactor_risk_adjustment(Newey_West_adjustment_cov,factor_volitality,all_
 
             monte_carlo_simulation[factor] = np.random.normal(0, factor_volitality.loc[factor], size=252)
 
-        monte_caro_cov = (monte_carlo_simulation.dot(eigen_vector_matrix)).cov()
+        monte_carlo_cov = (monte_carlo_simulation.dot(eigen_vector_matrix)).cov()
 
-        eigen_value_m, eigen_vector_m = np.linalg.eig(monte_caro_cov.astype(np.float))
+        eigen_value_m, eigen_vector_m = np.linalg.eig(monte_carlo_cov.astype(np.float))
 
-        eigen_value_m_matrix = pd.DataFrame(index=monte_caro_cov.index,columns=monte_caro_cov.index,data=np.diag(eigen_value_m.reshape(1, len(monte_caro_cov.index))[0]))
+        eigen_value_m_matrix = pd.DataFrame(index=monte_carlo_cov.index,columns=monte_carlo_cov.index,data=np.diag(eigen_value_m.reshape(1, len(monte_carlo_cov.index))[0]))
 
-        eigen_value_adjust, eigen_vector_adjust = np.linalg.eig((monte_caro_cov+estimated_cov).astype(np.float))
+        eigen_value_adjust, eigen_vector_adjust = np.linalg.eig((monte_carlo_cov+estimated_cov).astype(np.float))
 
-        eigen_value_adjust_matrix = pd.DataFrame(index=monte_caro_cov.index,columns=monte_caro_cov.index,data=np.diag(eigen_value_adjust.reshape(1, len(monte_caro_cov.index))[0]))
+        eigen_value_adjust_matrix = pd.DataFrame(index=monte_carlo_cov.index,columns=monte_carlo_cov.index,data=np.diag(eigen_value_adjust.reshape(1, len(monte_carlo_cov.index))[0]))
 
         intermediate_eigen_value = intermediate_eigen_value + (eigen_value_adjust_matrix/eigen_value_m_matrix).replace(np.nan,0)
 
-    pai = intermediate_eigen_value/monte_carol_times
+    pai = intermediate_eigen_value/monte_carlo_times
 
     eigenfactor_risk_adjustment_cov = eigen_vector_matrix.dot(pai.dot(eigen_value_matrix).dot(eigen_vector_matrix.T))
 

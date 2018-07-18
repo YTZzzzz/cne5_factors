@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d1e08ce0-9409-403a-8bc4-601026feb35f" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return_backup.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/factor_covariance/get_specific_return" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factor_covariance/get_factor_covariance.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_covariance/get_factor_covariance.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return.py" beforeDir="false" afterPath="$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factor_covariance/get_specific_risk.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_covariance/get_specific_risk.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -22,35 +22,29 @@
       <file leaf-file-name="get_factor_covariance.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_covariance/get_factor_covariance.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1105">
-              <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
+            <state relative-caret-position="890">
+              <caret line="170" column="72" lean-forward="true" selection-start-line="170" selection-start-column="72" selection-end-line="170" selection-end-column="72" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="get_implicit_factor_return.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py">
+      <file leaf-file-name="get_specific_return" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_return">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="152">
-              <caret line="205" column="21" selection-start-line="205" selection-start-column="21" selection-end-line="205" selection-end-column="21" />
+            <state relative-caret-position="270">
+              <caret line="18" column="38" selection-start-line="18" selection-start-column="38" selection-end-line="18" selection-end-column="38" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="get_customized_factor_return_backup.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return_backup.py">
+      <file leaf-file-name="get_specific_risk.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_risk.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="185">
-              <caret line="188" column="14" lean-forward="true" selection-start-line="188" selection-start-column="14" selection-end-line="188" selection-end-column="14" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="get_customized_factor_return.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="452">
-              <caret line="261" lean-forward="true" selection-end-line="261" />
+            <state relative-caret-position="262">
+              <caret line="80" column="57" selection-start-line="80" selection-start-column="57" selection-end-line="80" selection-end-column="57" />
             </state>
           </provider>
         </entry>
@@ -96,8 +90,10 @@
         <option value="$PROJECT_DIR$/factor_exposure/operators.py" />
         <option value="$PROJECT_DIR$/factor_exposure/get_style_factors.py" />
         <option value="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" />
-        <option value="$PROJECT_DIR$/factor_covariance/get_factor_covariance.py" />
         <option value="$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return.py" />
+        <option value="$PROJECT_DIR$/factor_covariance/get_specific_return" />
+        <option value="$PROJECT_DIR$/factor_covariance/get_factor_covariance.py" />
+        <option value="$PROJECT_DIR$/factor_covariance/get_specific_risk.py" />
       </list>
     </option>
   </component>
@@ -111,6 +107,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -121,13 +118,17 @@
             <path>
               <item name="cne5_factors" type="b2602c69:ProjectViewProjectNode" />
               <item name="cne5_factors" type="462c0819:PsiDirectoryNode" />
-              <item name="implicit_factor_return" type="462c0819:PsiDirectoryNode" />
+              <item name="factor_covariance" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="cne5_factors" type="b2602c69:ProjectViewProjectNode" />
+              <item name="cne5_factors" type="462c0819:PsiDirectoryNode" />
+              <item name="factor_exposure" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -181,15 +182,15 @@
     <frame x="0" y="0" width="1920" height="1080" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4991274" visible="true" weight="0.2342918" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4985465" visible="true" weight="0.23642172" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32935324" />
       <window_info anchor="right" id="R Packages" order="4" />
       <window_info anchor="right" id="R Graphics" order="3" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.5021299" side_tool="true" weight="0.39800996" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32935324" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="9" sideWeight="0.4978701" visible="true" weight="0.39701492" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="9" sideWeight="0.4978701" visible="true" weight="0.31442785" />
+      <window_info id="Structure" order="1" sideWeight="0.50145346" side_tool="true" weight="0.23642172" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49946752" weight="0.3283582" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" sideWeight="0.5008726" side_tool="true" weight="0.1682641" />
@@ -202,9 +203,9 @@
       <window_info anchor="bottom" id="Find" order="1" weight="0.32935324" />
     </layout>
     <layout-to-restore>
+      <window_info anchor="bottom" id="Version Control" order="7" weight="0.32935324" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4991274" visible="true" weight="0.2342918" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -212,15 +213,15 @@
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32935324" />
       <window_info anchor="right" id="R Graphics" order="3" />
       <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32935324" />
       <window_info anchor="right" id="R Packages" order="4" />
-      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="9" sideWeight="0.4978701" visible="true" weight="0.39701492" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49946752" weight="0.3283582" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.5021299" side_tool="true" weight="0.39800996" />
-      <window_info anchor="bottom" id="Version Control" order="7" weight="0.32935324" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
       <window_info id="Favorites" order="2" sideWeight="0.5008726" side_tool="true" weight="0.1682641" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32935324" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="9" sideWeight="0.4978701" visible="true" weight="0.39701492" />
     </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -228,17 +229,10 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="27" />
+      <option name="time" value="30" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/factor_exposure/get_style_factors.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="36" column="103" selection-start-line="36" selection-start-column="103" selection-end-line="36" selection-end-column="103" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/operators.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1695">
@@ -501,13 +495,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_risk.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="302">
-          <caret line="103" lean-forward="true" selection-start-line="103" selection-end-line="103" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/operators.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="525">
@@ -529,13 +516,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/factor_exposure/get_style_factors.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2559">
-          <caret line="285" lean-forward="true" selection-start-line="285" selection-end-line="285" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/factor_exposure/atomic_descriptors.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-60">
@@ -545,29 +525,53 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return_backup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="185">
-          <caret line="188" column="14" lean-forward="true" selection-start-line="188" selection-start-column="14" selection-end-line="188" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/factor_covariance/get_factor_covariance.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1105">
-          <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="152">
-          <caret line="205" column="21" selection-start-line="205" selection-start-column="21" selection-end-line="205" selection-end-column="21" />
+        <state relative-caret-position="2700">
+          <caret line="188" column="14" selection-start-line="188" selection-start-column="14" selection-end-line="188" selection-end-column="14" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="452">
-          <caret line="261" lean-forward="true" selection-end-line="261" />
+        <state relative-caret-position="600">
+          <caret line="48" selection-start-line="48" selection-end-line="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1125">
+          <caret line="81" column="183" selection-start-line="81" selection-start-column="183" selection-end-line="81" selection-end-column="183" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/factor_exposure/get_style_factors.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="445">
+          <caret line="60" column="19" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/factor_covariance/get_factor_covariance.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="890">
+          <caret line="170" column="72" lean-forward="true" selection-start-line="170" selection-start-column="72" selection-end-line="170" selection-end-column="72" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_return">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="18" column="38" selection-start-line="18" selection-start-column="38" selection-end-line="18" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_risk.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="262">
+          <caret line="80" column="57" selection-start-line="80" selection-start-column="57" selection-end-line="80" selection-end-column="57" />
         </state>
       </provider>
     </entry>

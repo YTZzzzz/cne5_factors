@@ -1,0 +1,37 @@
+import numpy as np
+import pandas as pd
+import statsmodels.api as st
+from datetime import datetime
+from datetime import timedelta
+from functools import reduce
+
+
+import rqdatac
+
+rqdatac.init('rice', 'rice', ('192.168.10.64', 16030))
+
+
+# test
+date = '2018-02-02'
+
+previous_date = '2018-02-01'
+
+stock_list = rqdatac.all_instruments(type='CS',date=previous_date)['order_book_id'].values.tolist()
+
+factor_return = rqdatac.barra.get_factor_return(date,date).T
+
+factor_exposure = rqdatac.barra.get_factor_exposure(stock_list,previous_date,previous_date)
+
+factor_exposure.index = factor_exposure.index.droplevel('date')
+
+stock_return = rqdatac.get_price(stock_list,previous_date,date,frequency='1d',fields='close',).pct_change()[1:].T
+
+#stock_return = rqdatac.get_price_change_rate(stock_list,date,date).T
+
+specific_return = stock_return - factor_exposure.dot(factor_return)
+
+barra_specific_return = rqdatac.barra.get_specific_return(stock_list,date,date).T
+
+np.linalg.norm(100 * specific_return[date] - barra_specific_return[date])
+
+test = abs(100*specific_return - barra_specific_return)
