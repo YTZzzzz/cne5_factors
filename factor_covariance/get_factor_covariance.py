@@ -9,26 +9,26 @@ import rqdatac
 rqdatac.init('rice','rice',('192.168.10.64',16030))
 
 
-dailyParameters = {'factor_return_length': 252,\
-                    'volatility_half_life': 42,\
-                    'NeweyWest_volatility_lags': np.nan,\
-                    'correlation_half_life': 200,\
-                    'NeweyWest_correlation_lags': np.nan,\
+dailyParameters = {'factor_return_length': 252,
+                    'volatility_half_life': 42,
+                    'NeweyWest_volatility_lags': np.nan,
+                    'correlation_half_life': 200,
+                    'NeweyWest_correlation_lags': np.nan,
                     'volatilityRegimeAdjustment_half_life': 4}
 
 
-shortTermParameters = {'factor_return_length': 252,\
-                       'volatility_half_life': 84,\
-                       'NeweyWest_volatility_lags': 5,\
-                       'correlation_half_life': 504,\
-                       'NeweyWest_correlation_lags': 2,\
+shortTermParameters = {'factor_return_length': 252,
+                       'volatility_half_life': 84,
+                       'NeweyWest_volatility_lags': 5,
+                       'correlation_half_life': 504,
+                       'NeweyWest_correlation_lags': 2,
                        'volatilityRegimeAdjustment_half_life': 42}
 
-longTermParameters = {'factor_return_length': 252,\
-                      'volatility_half_life': 252,\
-                      'NeweyWest_volatility_lags': 5,\
-                      'correlation_half_life': 504,\
-                      'NeweyWest_correlation_lags': 2,\
+longTermParameters = {'factor_return_length': 252,
+                      'volatility_half_life': 252,
+                      'NeweyWest_volatility_lags': 5,
+                      'correlation_half_life': 504,
+                      'NeweyWest_correlation_lags': 2,
                       'volatilityRegimeAdjustment_half_life': 168}
 
 
@@ -59,6 +59,8 @@ def factor_covariance_comparison(reformatted_empirical_factor_covariance):
 
     merged_covariance = pd.merge(unadjusted_covariance, reformatted_empirical_factor_covariance, how='left', left_on=['!Factor1', 'Factor2'], right_on=['factor', '_factor'])
 
+    print('unadjusted_covariance 欧几里得距离：', np.linalg.norm(merged_covariance['VarCovar']-merged_covariance[0]))
+
     print('unadjusted comparison', merged_covariance[['VarCovar', 0]].astype(np.float).corr())
 
     print('unadjusted comparison', merged_covariance[['VarCovar', 0]].head())
@@ -67,6 +69,8 @@ def factor_covariance_comparison(reformatted_empirical_factor_covariance):
 
     merged_covariance = pd.merge(pre_volatilityRegimeAdjustment_covariance, reformatted_empirical_factor_covariance, how='left', left_on=['!Factor1', 'Factor2'], right_on=['factor', '_factor'])
 
+    print("pre_volatilityRegimeAdjustment 欧几里得距离：", np.linalg.norm(merged_covariance['VarCovar']-merged_covariance[0]))
+
     print('pre_volatilityRegimeAdjustment comparison', merged_covariance[['VarCovar', 0]].astype(np.float).corr())
 
     print('pre_volatilityRegimeAdjustment comparison', merged_covariance[['VarCovar', 0]].head())
@@ -74,6 +78,8 @@ def factor_covariance_comparison(reformatted_empirical_factor_covariance):
     # volatility regime adjustment 处理后
 
     merged_covariance = pd.merge(fully_processed_covariance, reformatted_empirical_factor_covariance, how='left', left_on=['!Factor1', 'Factor2'], right_on=['factor', '_factor'])
+
+    print("fully_processed_covariance 欧几里得距离：", np.linalg.norm(merged_covariance['VarCovar']-merged_covariance[0]))
 
     print('fully_processed comparison', merged_covariance[['VarCovar', 0]].astype(np.float).corr())
 
@@ -276,9 +282,7 @@ def get_factor_covariance(date, parameters):
 
     reformatted_empirical_factor_covariance = empirical_factor_covariance.reset_index()
 
-    Newey_West_adjustment_cov, factor_volitality, correlation_matrix = Newey_West_adjustment(current_factor_return,
-                                                                                             multiperiod_factor_returns,
-                                                                                             all_factors, parameters)
+    Newey_West_adjustment_cov, factor_volitality, correlation_matrix,estimated_cov = Newey_West_adjustment(current_factor_return,multiperiod_factor_returns,all_factors, parameters)
 
     eigenfactor_risk_adjustment_cov = eigenfactor_risk_adjustment(Newey_West_adjustment_cov, factor_volitality,
                                                                   all_factors)

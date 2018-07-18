@@ -181,31 +181,29 @@ def get_explicit_factor_returns(date,stock_list):
     return results
 
 
-def get_customized_factor_return(universe,date,skip_suspended=True,skip_st_stocks=True,method='implicit'):
+def get_customized_factor_return(date,universe,options,method):
 
     """
 
     PARAMETERS
     ----------
-    universe：list
-              用户自定义股票白名单。默认为 None。用户需传入和股票白名单相对应的 order_book_ids，例如：['600705.XSHG', ' 601555.XSHG']
-
     date: str
-          计算日期（例如：‘2017-03-03’）。需注意股票白名单应为计算日期已上市股票。
+         分析日期
 
-    skip_suspended: boolean
-                    是否剔除白名单中当天停牌的股票。默认为 True。
+    stock_list：list 用户指定的股票池
 
-    skip_st_stocks: boolean
-                    是否剔除白名单中的ST股。默认为 True。
 
-    method: str
-            计算方法。默认为'implicit'（隐式因子收益率），可选'explicit'（显式风格因子收益率）
+    options: dict 其他选择参数，
+
+    包括：drop_st_stock: boolean, 是否剔除ST股 ; drop_new_stock: np.int 选择股票的上市日期限制（自然日）; drop_suspended_stock: boolean,是否剔除停牌股
+
+    method: str default: implicit 可选"explicit" 用户选择计算因子收益率的方式
+
 
     RETURN
     ----------
 
-    factor_return: Series, 依据用户指定的股票池计算出的因子（或风格因子）收益率,index 为因子名称。
+    factor_return: Series, 依据用户指定的股票池计算出的因子收益率
 
     """
 
@@ -215,37 +213,44 @@ def get_customized_factor_return(universe,date,skip_suspended=True,skip_st_stock
 
     # 依据用户的选择参数，对stock_list进行筛选
 
+
     # 若用户选择剔除ST股：
 
-    if skip_st_stocks == True:
+    if options.get('drop_st_stock') == True:
 
         is_st_df = rqdatac.is_st_stock(universe,start_date=date,end_date=date)
 
         is_st_df.index = is_st_df.index.astype(str)
 
-        universe = is_st_df.loc[date][is_st_df.loc[date].values == False].index.tolist()
+        stock_list = is_st_df.loc[date][is_st_df.loc[date].values == False].index.tolist()
 
     # 若用户选择剔除停牌股：
 
-    if skip_suspended == True:
+    if options.get('drop_suspended_stock') == True:
 
-        trading_volume = rqdatac.get_price(universe,start_date=date,end_date=date,frequency='1d',fields='volume',country='cn')
+        trading_volume = rqdatac.get_price(stock_list,start_date=date,end_date=date,frequency='1d',fields='volume',country='cn')
 
-        universe = trading_volume.loc[date][trading_volume.loc[date].values > 0].index.tolist()
+        stock_list = trading_volume.loc[date][trading_volume.loc[date].values > 0].index.tolist()
+
+    # 根据用户输入的上市日期限制，剔除新股
+
+    threshold = [latest_trading_date if options.get('drop_new_stock')==None else str(datetime.strptime(latest_trading_date, "%Y-%m-%d") - timedelta(days=options.get('drop_new_stock')))][0]
+
+    stock_list = [stock for stock in stock_list if rqdatac.instruments(stock).listed_date <= threshold]
 
     # 计算指定股票池内股票前一交易日的行业暴露度
 
-    factor_exposure = get_exposure(universe,str(previous_trading_date))
+    factor_exposure = get_exposure(stock_list,str(previous_trading_date))
 
     # 根据上述暴露度计算因子收益率
 
     if method == 'implicit':
 
-        factor_return = customized_factor_return_estimation(date,factor_exposure,universe)
+        factor_return = customized_factor_return_estimation(date,factor_exposure,stock_list)
 
     else:
 
-        factor_return = get_explicit_factor_returns(date, universe)
+        factor_return = get_explicit_factor_returns(date, stock_list)
 
     return factor_return
 
