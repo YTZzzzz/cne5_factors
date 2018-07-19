@@ -109,6 +109,5 @@ def structural_risk_adjustment(Newey_West_adjustment_var):
 
 
 def Bayesian_Shrinkage_adjustment():
-
     return
 
