@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d1e08ce0-9409-403a-8bc4-601026feb35f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py" beforeDir="false" afterPath="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factor_covariance/get_factor_covariance.py" beforeDir="false" afterPath="$PROJECT_DIR$/factor_covariance/get_factor_covariance.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -16,11 +16,29 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="get_specific_risk.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="get_factor_covariance.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/factor_covariance/get_factor_covariance.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="204">
+              <caret line="202" column="15" lean-forward="true" selection-start-line="202" selection-start-column="15" selection-end-line="202" selection-end-column="15" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="get_specific_risk.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_risk.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="390">
-              <caret line="33" selection-start-line="33" selection-end-line="33" />
+            <state relative-caret-position="-28">
+              <caret line="32" lean-forward="true" selection-start-line="32" selection-end-line="32" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="get_implicit_factor_return.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="260">
+              <caret line="196" lean-forward="true" selection-start-line="196" selection-end-line="196" />
             </state>
           </provider>
         </entry>
@@ -67,9 +85,9 @@
         <option value="$PROJECT_DIR$/factor_exposure/atomic_descriptors.py" />
         <option value="$PROJECT_DIR$/implicit_factor_return/get_customized_factor_return.py" />
         <option value="$PROJECT_DIR$/factor_covariance/get_specific_return" />
-        <option value="$PROJECT_DIR$/factor_covariance/get_factor_covariance.py" />
         <option value="$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py" />
         <option value="$PROJECT_DIR$/factor_covariance/get_specific_risk.py" />
+        <option value="$PROJECT_DIR$/factor_covariance/get_factor_covariance.py" />
       </list>
     </option>
   </component>
@@ -93,6 +111,11 @@
               <item name="cne5_factors" type="b2602c69:ProjectViewProjectNode" />
               <item name="cne5_factors" type="462c0819:PsiDirectoryNode" />
               <item name="factor_covariance" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="cne5_factors" type="b2602c69:ProjectViewProjectNode" />
+              <item name="cne5_factors" type="462c0819:PsiDirectoryNode" />
+              <item name="implicit_factor_return" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -514,13 +537,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/factor_covariance/get_factor_covariance.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2445">
-          <caret line="170" column="72" selection-start-line="170" selection-start-column="72" selection-end-line="170" selection-end-column="72" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_return">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="150">
@@ -531,17 +547,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py">
+    <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_risk.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1800">
-          <caret line="126" lean-forward="true" selection-start-line="126" selection-end-line="126" />
+        <state relative-caret-position="-28">
+          <caret line="32" lean-forward="true" selection-start-line="32" selection-end-line="32" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/factor_covariance/get_specific_risk.py">
+    <entry file="file://$PROJECT_DIR$/implicit_factor_return/get_implicit_factor_return.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="33" selection-start-line="33" selection-end-line="33" />
+        <state relative-caret-position="260">
+          <caret line="196" lean-forward="true" selection-start-line="196" selection-end-line="196" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/factor_covariance/get_factor_covariance.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="202" column="15" lean-forward="true" selection-start-line="202" selection-start-column="15" selection-end-line="202" selection-end-column="15" />
         </state>
       </provider>
     </entry>

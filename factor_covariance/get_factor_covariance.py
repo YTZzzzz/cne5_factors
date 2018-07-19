@@ -16,7 +16,6 @@ dailyParameters = {'factor_return_length': 252,
                     'NeweyWest_correlation_lags': np.nan,
                     'volatilityRegimeAdjustment_half_life': 4}
 
-
 shortTermParameters = {'factor_return_length': 252,
                        'volatility_half_life': 84,
                        'NeweyWest_volatility_lags': 5,
@@ -201,11 +200,11 @@ def eigenfactor_risk_adjustment(Newey_West_adjustment_cov,factor_volitality,all_
 
     eigen_vector_matrix = pd.DataFrame(data=eigen_vector,index=Newey_West_adjustment_cov.index,columns=Newey_West_adjustment_cov.index)
 
-    monte_carlo_times = 10000
+    monte_carlo_sampling_number = 10000
 
     intermediate_eigen_value = pd.DataFrame(data=0,index=all_factors,columns=all_factors)
 
-    for m in range(1,monte_carlo_times):
+    for m in range(1,monte_carlo_sampling_number):
 
         monte_carlo_simulation = pd.DataFrame(columns=all_factors)
 
@@ -225,7 +224,7 @@ def eigenfactor_risk_adjustment(Newey_West_adjustment_cov,factor_volitality,all_
 
         intermediate_eigen_value = intermediate_eigen_value + (eigen_value_adjust_matrix/eigen_value_m_matrix).replace(np.nan,0)
 
-    pai = intermediate_eigen_value/monte_carlo_times
+    pai = intermediate_eigen_value/monte_carlo_sampling_number
 
     eigenfactor_risk_adjustment_cov = eigen_vector_matrix.dot(pai.dot(eigen_value_matrix).dot(eigen_vector_matrix.T))
 
