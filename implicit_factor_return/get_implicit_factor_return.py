@@ -101,20 +101,6 @@ def factor_return_estimation(date, factor_exposure):
 
         market_cap[market_cap.isnull() == True] = (price * shares)[previous_trading_date]
 
-#    if market_cap.isnull().sum() >= 30:
-
- #       market_cap_df = rqdatac.get_fundamentals(rqdatac.query(rqdatac.fundamentals.eod_derivative_indicator.a_share_market_val),entry_date=previous_trading_date,interval='1d').major_xs(previous_trading_date)['a_share_market_val'].loc[factor_exposure.index]
-
-#        if market_cap_df.isnull().sum() >= 30:
-
- #           raise ValueError('市值出现大量缺失')
-
-  #      else:
-
-   #         market_cap = market_cap_df
-    #else:
-     #   market_cap = market_cap.dropna()
-
     normalized_regression_weight = market_cap.pow(0.5)/market_cap.pow(0.5).sum()
 
     # 各行业市值之和，用于行业收益率约束条件
@@ -220,6 +206,6 @@ def get_implicit_factor_return(date):
     return factor_returns
 
 
-date = '2018-07-12'
+date = '2018-07-18'
 
 factor_returns = get_implicit_factor_return(date)

@@ -16,7 +16,6 @@ dailyParameters = {'factor_return_length': 252,
                     'Bayesian_Shrinkage_parameter': 0.1,
                     'volatilityRegimeAdjustment_half_life': 4}
 
-
 shortTermParameters = {'factor_return_length': 252,
                        'sepcific_volatility_half_life': 84,
                        'Newey_West_Auto_Correlation_Lags': 5,
